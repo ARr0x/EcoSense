@@ -1,0 +1,8 @@
+{
+  "app": "python iac/app.py",
+  "context": {
+    "@aws-cdk/aws-s3:blockPublicPolicy": true,
+    "@aws-cdk/aws-sns-subscriptions:restrictSqsDescryption": false,
+    "@aws-cdk/core:stackRelativeExports": true
+  }
+}
