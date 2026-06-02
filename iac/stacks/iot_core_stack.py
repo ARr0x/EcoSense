@@ -14,25 +14,23 @@ Utilise LabRole pour les permissions IoT Core → SNS et IoT Core → Firehose.
 
 import aws_cdk as cdk
 from aws_cdk import aws_iot as iot
-from aws_cdk import aws_sns as sns
-from aws_cdk import aws_kinesisfirehose as firehose
 from constructs import Construct
 
 
-class IoTCoreStack(cdk.Stack):
+class IoTCoreStack(Construct):
 
     def __init__(
         self,
         scope: Construct,
         construct_id: str,
-        alert_topic: sns.Topic,
-        delivery_stream: firehose.CfnDeliveryStream,
+        alert_topic_arn: str,
+        delivery_stream_name: str,
         **kwargs,
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # LabRole — utilisé pour toutes les actions IoT Core
-        lab_role_arn = f"arn:aws:iam::{self.account}:role/LabRole"
+        stack = cdk.Stack.of(self)
+        lab_role_arn = f"arn:aws:iam::{stack.account}:role/LabRole"
 
         # =====================================================================
         # Topic Rule 1 — CRITICAL → SNS
@@ -50,7 +48,7 @@ class IoTCoreStack(cdk.Stack):
                 actions=[
                     iot.CfnTopicRule.ActionProperty(
                         sns=iot.CfnTopicRule.SnsActionProperty(
-                            target_arn=alert_topic.topic_arn,
+                            target_arn=alert_topic_arn,
                             role_arn=lab_role_arn,
                             message_format="RAW",
                         )
@@ -58,7 +56,7 @@ class IoTCoreStack(cdk.Stack):
                 ],
                 error_action=iot.CfnTopicRule.ActionProperty(
                     cloudwatch_logs=iot.CfnTopicRule.CloudwatchLogsActionProperty(
-                        log_group_name=f"/ecosense/iot/errors/alert/{self.region}",
+                        log_group_name=f"/ecosense/iot/errors/alert/{stack.region}",
                         role_arn=lab_role_arn,
                     )
                 ),
@@ -81,7 +79,7 @@ class IoTCoreStack(cdk.Stack):
                 actions=[
                     iot.CfnTopicRule.ActionProperty(
                         firehose=iot.CfnTopicRule.FirehoseActionProperty(
-                            delivery_stream_name=delivery_stream.ref,
+                            delivery_stream_name=delivery_stream_name,
                             role_arn=lab_role_arn,
                             separator="\n",
                         )
@@ -89,7 +87,7 @@ class IoTCoreStack(cdk.Stack):
                 ],
                 error_action=iot.CfnTopicRule.ActionProperty(
                     cloudwatch_logs=iot.CfnTopicRule.CloudwatchLogsActionProperty(
-                        log_group_name=f"/ecosense/iot/errors/archive/{self.region}",
+                        log_group_name=f"/ecosense/iot/errors/archive/{stack.region}",
                         role_arn=lab_role_arn,
                     )
                 ),

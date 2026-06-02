@@ -21,9 +21,7 @@ import os
 
 import aws_cdk as cdk
 from dotenv import find_dotenv, load_dotenv
-from stacks.iot_core_stack import IoTCoreStack
-from stacks.sns_stack import SnsStack
-from stacks.storage_stack import StorageStack
+from stacks.ecosense_stack import EcoSenseStack
 
 # =============================================================================
 # Charger .env depuis la racine du dépôt
@@ -43,6 +41,7 @@ if not AWS_ACCOUNT_ID:
 
 PRIMARY_REGION = os.environ.get("CDK_DEFAULT_REGION", "us-east-1")
 SECONDARY_REGION = os.environ.get("SECONDARY_REGION", "us-east-2")
+MULTI_REGION = os.environ.get("MULTI_REGION", "true").lower() == "true"
 
 # Variables optionnelles pour SNS
 ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "")  # ex: team@example.com
@@ -60,87 +59,31 @@ FIREHOSE_BUFFER_MB = int(os.environ.get("FIREHOSE_BUFFER_MB", "5"))
 app = cdk.App()
 
 
-def create_region_stacks(region: str, label: str) -> dict:
-    """
-    Instancie les 3 stacks pour une région donnée.
-    Retourne un dict avec les références aux stacks pour les outputs.
-
-    label : "Primary" ou "Secondary"
-    """
-    env = cdk.Environment(account=AWS_ACCOUNT_ID, region=region)
-
-    # ------------------------------------------------------------------
-    # 1. SnsStack — SNS topic + abonnés Email/SMS
-    #    Pas de dépendances sur les autres stacks.
-    #    Expose : sns_stack.alert_topic (objet SNS Topic)
-    # ------------------------------------------------------------------
-    sns_stack = SnsStack(
+def create_stack(region: str, label: str) -> EcoSenseStack:
+    return EcoSenseStack(
         app,
-        f"Sns-{label}",
+        f"EcoSense-{label}",
         alert_email=ALERT_EMAIL,
-        env=env,
-        synthesizer=cdk.CliCredentialsStackSynthesizer(),
-    )
-
-    # ------------------------------------------------------------------
-    # 2. StorageStack — Firehose + S3 + Athena
-    #    Pas de dépendances sur les autres stacks.
-    #    Expose : storage_stack.firehose, storage_stack.bucket
-    # ------------------------------------------------------------------
-    storage_stack = StorageStack(
-        app,
-        f"Storage-{label}",
         bucket_name=f"{S3_BUCKET_PREFIX}-{AWS_ACCOUNT_ID}-{region}",
         firehose_buffer_seconds=FIREHOSE_BUFFER_SEC,
         firehose_buffer_mb=FIREHOSE_BUFFER_MB,
-        env=env,
+        env=cdk.Environment(account=AWS_ACCOUNT_ID, region=region),
         synthesizer=cdk.CliCredentialsStackSynthesizer(),
     )
 
-    # ------------------------------------------------------------------
-    # 3. IoTCoreStack — Topic Rules SQL
-    #    Dépend de SnsStack (ARN topic alert) et StorageStack (ARN Firehose).
-    #    Reçoit les ARN en paramètre → pas de dépendance circulaire.
-    # ------------------------------------------------------------------
-    iot_stack = IoTCoreStack(
-        app,
-        f"IoTCore-{label}",
-        alert_topic=sns_stack.alert_topic,  # ref objet SNS
-        delivery_stream=storage_stack.delivery_stream,  # ref objet Firehose
-        env=env,
-        synthesizer=cdk.CliCredentialsStackSynthesizer(),
-    )
-
-    # IoTCore dépend explicitement des deux autres (ordre de déploiement)
-    iot_stack.add_dependency(sns_stack)
-    iot_stack.add_dependency(storage_stack)
-
-    return {
-        "sns": sns_stack,
-        "storage": storage_stack,
-        "iot": iot_stack,
-    }
-
 
 # =============================================================================
-# Déploiement multi-région
+# Déploiement
 # =============================================================================
 
-primary = create_region_stacks(PRIMARY_REGION, "Primary")
-secondary = create_region_stacks(SECONDARY_REGION, "Secondary")
+primary = create_stack(PRIMARY_REGION, "Primary")
+secondary = create_stack(SECONDARY_REGION, "Secondary") if MULTI_REGION else None
 
 # =============================================================================
-# Tags globaux sur tous les stacks
+# Tags globaux
 # =============================================================================
 
-for stack in [
-    primary["sns"],
-    primary["storage"],
-    primary["iot"],
-    secondary["sns"],
-    secondary["storage"],
-    secondary["iot"],
-]:
+for stack in filter(None, [primary, secondary]):
     cdk.Tags.of(stack).add("Project", "EcoSense")
     cdk.Tags.of(stack).add("ManagedBy", "CDK")
     cdk.Tags.of(stack).add("Environment", "Hackathon")

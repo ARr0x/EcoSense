@@ -21,7 +21,7 @@ from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
 
-class StorageStack(cdk.Stack):
+class StorageStack(Construct):
     def __init__(
         self,
         scope: Construct,
@@ -33,8 +33,8 @@ class StorageStack(cdk.Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # LabRole — utilisé par Firehose pour écrire en S3
-        lab_role_arn = f"arn:aws:iam::{self.account}:role/LabRole"
+        stack = cdk.Stack.of(self)
+        lab_role_arn = f"arn:aws:iam::{stack.account}:role/LabRole"
 
         # =====================================================================
         # S3 Bucket — archivage partitionné
@@ -63,7 +63,7 @@ class StorageStack(cdk.Stack):
         self.delivery_stream = firehose.CfnDeliveryStream(
             self,
             "DeliveryStream",
-            delivery_stream_name=f"ecosense-delivery-{self.region}",
+            delivery_stream_name=f"ecosense-delivery-{stack.region}",
             delivery_stream_type="DirectPut",
             extended_s3_destination_configuration=firehose.CfnDeliveryStream.ExtendedS3DestinationConfigurationProperty(
                 bucket_arn=self.bucket.bucket_arn,
@@ -77,7 +77,7 @@ class StorageStack(cdk.Stack):
                 compression_format="UNCOMPRESSED",  # JSON lisible directement
                 cloud_watch_logging_options=firehose.CfnDeliveryStream.CloudWatchLoggingOptionsProperty(
                     enabled=True,
-                    log_group_name=f"/ecosense/firehose/{self.region}",
+                    log_group_name=f"/ecosense/firehose/{stack.region}",
                     log_stream_name="S3Delivery",
                 ),
             ),
@@ -89,7 +89,7 @@ class StorageStack(cdk.Stack):
         glue_database = glue.CfnDatabase(
             self,
             "GlueDatabase",
-            catalog_id=self.account,
+            catalog_id=stack.account,
             database_input=glue.CfnDatabase.DatabaseInputProperty(
                 name="ecosense_db",
                 description="EcoSense IoT telemetry database",
@@ -103,7 +103,7 @@ class StorageStack(cdk.Stack):
         glue_table = glue.CfnTable(
             self,
             "GlueTable",
-            catalog_id=self.account,
+            catalog_id=stack.account,
             database_name="ecosense_db",
             table_input=glue.CfnTable.TableInputProperty(
                 name="telemetry",
@@ -125,8 +125,8 @@ class StorageStack(cdk.Stack):
                     "projection.hour.range": "0,23",
                     "projection.hour.digits": "2",
                     "storage.location.template": (
-                        f"s3://{bucket_name}/raw/"
-                        "year=${year}/month=${month}/day=${day}/hour=${hour}/"
+                        f"s3://{bucket_name}/"
+                        "${year}-${month}-${day}-${hour}/"
                     ),
                 },
                 partition_keys=[
@@ -170,7 +170,7 @@ class StorageStack(cdk.Stack):
         athena.CfnWorkGroup(
             self,
             "AthenaWorkgroup",
-            name=f"ecosense-{self.region}",
+            name=f"ecosense-{stack.region}",
             description="EcoSense Athena workgroup",
             work_group_configuration=athena.CfnWorkGroup.WorkGroupConfigurationProperty(
                 result_configuration=athena.CfnWorkGroup.ResultConfigurationProperty(
@@ -189,7 +189,6 @@ class StorageStack(cdk.Stack):
             "BucketName",
             value=self.bucket.bucket_name,
             description="Nom du bucket S3",
-            export_name=f"EcoSenseBucketName-{self.region}",
         )
 
         cdk.CfnOutput(
@@ -204,7 +203,6 @@ class StorageStack(cdk.Stack):
             "FirehoseName",
             value=self.delivery_stream.ref,
             description="Nom du Firehose delivery stream",
-            export_name=f"EcoSenseFirehoseName-{self.region}",
         )
 
         cdk.CfnOutput(

@@ -1,5 +1,5 @@
 """
-sns_stack.py — EcoSense SNS Stack
+sns_stack.py — EcoSense SNS Construct
 
 Crée le SNS Topic pour les alertes CRITICAL et ses abonnés Email/SMS.
 Utilisé par iot_core_stack comme destination de la Topic Rule CRITICAL.
@@ -14,7 +14,7 @@ from aws_cdk import aws_sns_subscriptions as subscriptions
 from constructs import Construct
 
 
-class SnsStack(cdk.Stack):
+class SnsStack(Construct):
     def __init__(
         self,
         scope: Construct,
@@ -24,8 +24,8 @@ class SnsStack(cdk.Stack):
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # LabRole ARN — utilisé pour la policy SNS
-        lab_role_arn = f"arn:aws:iam::{self.account}:role/LabRole"
+        stack = cdk.Stack.of(self)
+        lab_role_arn = f"arn:aws:iam::{stack.account}:role/LabRole"
 
         # =====================================================================
         # SNS Topic — alertes CRITICAL
@@ -33,15 +33,13 @@ class SnsStack(cdk.Stack):
         self.alert_topic = sns.Topic(
             self,
             "AlertTopic",
-            topic_name=f"ecosense-alert-{self.region}",
-            display_name=f"EcoSense CRITICAL Alerts ({self.region})",
+            topic_name=f"ecosense-alert-{stack.region}",
+            display_name=f"EcoSense CRITICAL Alerts ({stack.region})",
         )
 
         # =====================================================================
         # Abonnés
         # =====================================================================
-
-        # Email (si renseigné dans .env)
         if alert_email:
             self.alert_topic.add_subscription(
                 subscriptions.EmailSubscription(alert_email)
@@ -60,9 +58,7 @@ class SnsStack(cdk.Stack):
             cdk.aws_iam.PolicyStatement(
                 sid="AllowIoTCorePublish",
                 effect=cdk.aws_iam.Effect.ALLOW,
-                principals=[
-                    cdk.aws_iam.ArnPrincipal(lab_role_arn),
-                ],
+                principals=[cdk.aws_iam.ArnPrincipal(lab_role_arn)],
                 actions=["sns:Publish"],
                 resources=[self.alert_topic.topic_arn],
             )
@@ -76,7 +72,6 @@ class SnsStack(cdk.Stack):
             "AlertTopicArn",
             value=self.alert_topic.topic_arn,
             description="ARN du SNS Topic alertes CRITICAL",
-            export_name=f"EcoSenseAlertTopicArn-{self.region}",
         )
 
         cdk.CfnOutput(
