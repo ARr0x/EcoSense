@@ -58,7 +58,7 @@ class StorageStack(Construct):
 
         # =====================================================================
         # Kinesis Firehose — buffer et écriture en S3
-        # Partitionnement : raw/year=YYYY/month=MM/day=DD/hour=HH/
+        # Partitionnement : YYYY-MM-DD-HH/
         # =====================================================================
         self.delivery_stream = firehose.CfnDeliveryStream(
             self,
@@ -68,8 +68,8 @@ class StorageStack(Construct):
             extended_s3_destination_configuration=firehose.CfnDeliveryStream.ExtendedS3DestinationConfigurationProperty(
                 bucket_arn=self.bucket.bucket_arn,
                 role_arn=lab_role_arn,
-                prefix="raw/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/hour=!{timestamp:HH}/",
-                error_output_prefix="errors/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/!{firehose:error-output-type}/",
+                prefix="!{timestamp:yyyy}-!{timestamp:MM}-!{timestamp:dd}-!{timestamp:HH}/",
+                error_output_prefix="errors/!{timestamp:yyyy}-!{timestamp:MM}-!{timestamp:dd}/!{firehose:error-output-type}/",
                 buffering_hints=firehose.CfnDeliveryStream.BufferingHintsProperty(
                     interval_in_seconds=firehose_buffer_seconds,
                     size_in_m_bs=firehose_buffer_mb,
@@ -126,7 +126,7 @@ class StorageStack(Construct):
                     "projection.hour.digits": "2",
                     "storage.location.template": (
                         f"s3://{bucket_name}/"
-                        "${year}-${month}-${day}-${hour}/"
+                        "${year}-${month}-${day}-${hour}"
                     ),
                 },
                 partition_keys=[
@@ -136,7 +136,7 @@ class StorageStack(Construct):
                     glue.CfnTable.ColumnProperty(name="hour", type="int"),
                 ],
                 storage_descriptor=glue.CfnTable.StorageDescriptorProperty(
-                    location=f"s3://{bucket_name}/raw/",
+                    location=f"s3://{bucket_name}/",
                     input_format="org.apache.hadoop.mapred.TextInputFormat",
                     output_format="org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
                     serde_info=glue.CfnTable.SerdeInfoProperty(
@@ -150,12 +150,8 @@ class StorageStack(Construct):
                         glue.CfnTable.ColumnProperty(name="unit", type="string"),
                         glue.CfnTable.ColumnProperty(name="status", type="string"),
                         glue.CfnTable.ColumnProperty(name="region", type="string"),
-                        glue.CfnTable.ColumnProperty(name="timestamp", type="bigint"),
-                        glue.CfnTable.ColumnProperty(name="ingested_at", type="bigint"),
                         glue.CfnTable.ColumnProperty(name="quartier", type="string"),
-                        glue.CfnTable.ColumnProperty(
-                            name="sensor_id_topic", type="string"
-                        ),
+                        glue.CfnTable.ColumnProperty(name="timestamp", type="bigint"),
                     ],
                 ),
             ),
@@ -207,13 +203,21 @@ class StorageStack(Construct):
 
         cdk.CfnOutput(
             self,
-            "AthenaQuery",
-            value=(
-                "SELECT sensor_id, metric, value, status, "
-                "FROM_UNIXTIME(timestamp) AS ts "
-                "FROM ecosense_db.telemetry "
-                "WHERE year=2026 AND month=6 AND day=1 "
-                "LIMIT 100;"
-            ),
-            description="Exemple de requête Athena",
+            "AthenaWorkgroupName",
+            value=f"ecosense-{stack.region}",
+            description="Nom du workgroup Athena — sélectionner dans la console avant de requêter",
+        )
+
+        cdk.CfnOutput(
+            self,
+            "AthenaQueryAllRecent",
+            value='SELECT * FROM "ecosense_db"."telemetry" LIMIT 10;',
+            description="Requête Athena — dernières télémétries",
+        )
+
+        cdk.CfnOutput(
+            self,
+            "AthenaQueryCritical",
+            value="SELECT * FROM \"ecosense_db\".\"telemetry\" WHERE status='CRITICAL' LIMIT 50;",
+            description="Requête Athena — alertes CRITICAL uniquement",
         )
