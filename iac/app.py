@@ -79,6 +79,7 @@ def create_region_stacks(region: str, label: str) -> dict:
         f"Sns-{label}",
         alert_email=ALERT_EMAIL,
         env=env,
+        synthesizer=cdk.CliCredentialsStackSynthesizer(),
     )
 
     # ------------------------------------------------------------------
@@ -93,6 +94,7 @@ def create_region_stacks(region: str, label: str) -> dict:
         firehose_buffer_seconds=FIREHOSE_BUFFER_SEC,
         firehose_buffer_mb=FIREHOSE_BUFFER_MB,
         env=env,
+        synthesizer=cdk.CliCredentialsStackSynthesizer(),
     )
 
     # ------------------------------------------------------------------
@@ -106,6 +108,7 @@ def create_region_stacks(region: str, label: str) -> dict:
         alert_topic=sns_stack.alert_topic,  # ref objet SNS
         delivery_stream=storage_stack.delivery_stream,  # ref objet Firehose
         env=env,
+        synthesizer=cdk.CliCredentialsStackSynthesizer(),
     )
 
     # IoTCore dépend explicitement des deux autres (ordre de déploiement)

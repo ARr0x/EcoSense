@@ -46,15 +46,7 @@ class IoTCoreStack(cdk.Stack):
             topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
                 rule_disabled=False,
                 aws_iot_sql_version="2016-03-23",
-                sql=(
-                    "SELECT "
-                    "sensor_id, metric, value, unit, status, region, timestamp, "
-                    "timestamp() AS ingested_at, "
-                    "topic(2) AS quartier, "
-                    "topic(3) AS sensor_id_topic "
-                    "FROM 'metropole/+/+/telemetry' "
-                    "WHERE status = 'CRITICAL'"
-                ),
+                sql="SELECT * FROM 'metropole/+/+/telemetry' WHERE status = 'CRITICAL'",
                 actions=[
                     iot.CfnTopicRule.ActionProperty(
                         sns=iot.CfnTopicRule.SnsActionProperty(
@@ -85,14 +77,7 @@ class IoTCoreStack(cdk.Stack):
             topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
                 rule_disabled=False,
                 aws_iot_sql_version="2016-03-23",
-                sql=(
-                    "SELECT "
-                    "sensor_id, metric, value, unit, status, region, timestamp, "
-                    "timestamp() AS ingested_at, "
-                    "topic(2) AS quartier, "
-                    "topic(3) AS sensor_id_topic "
-                    "FROM 'metropole/+/+/telemetry'"
-                ),
+                sql="SELECT * FROM 'metropole/+/+/telemetry'",
                 actions=[
                     iot.CfnTopicRule.ActionProperty(
                         firehose=iot.CfnTopicRule.FirehoseActionProperty(

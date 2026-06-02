@@ -96,7 +96,7 @@ def create_certificate_and_keys(iot_client) -> dict:
     """Créer un certificat X.509 et sa paire de clés."""
     try:
         log.info("Création du certificat X.509...")
-        response = iot_client.create_keys_and_certificate(SetAsActive=True)
+        response = iot_client.create_keys_and_certificate(setAsActive=True)
         log.info(f"✓ Certificat créé : {response['certificateId'][:16]}...")
 
         return {

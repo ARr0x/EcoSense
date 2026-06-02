@@ -34,6 +34,9 @@ METRICS = {
     "HUMIDITY": {"unit": "%", "normal": (20, 95), "critical_mult": 1.1},
 }
 
+# === Quartiers (districts) pour distribution géographique ===
+QUARTIERS = ["centre", "nord", "sud", "est", "ouest"]
+
 
 # === Configuration ===
 @dataclass
@@ -231,6 +234,7 @@ def generate_payload(sensor_id: int, region: str, critical_rate: float) -> dict:
         "unit": metric["unit"],
         "status": status,
         "region": region,
+        "quartier": random.choice(QUARTIERS),
         "timestamp": int(time.time()),
     }
 
@@ -421,7 +425,7 @@ def cmd_run(config: Config) -> int:
                 payload = generate_payload(
                     sid, state["active_region"], config.critical_rate
                 )
-                topic = f"ecosense/sensors/{payload['sensor_id']}/telemetry"
+                topic = f"metropole/{payload['quartier']}/{payload['sensor_id']}/telemetry"
                 log.info(f"→ PUBLISH topic: {topic}")
 
                 result = client.publish(topic, json.dumps(payload), qos=1)
