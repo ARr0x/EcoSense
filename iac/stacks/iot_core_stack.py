@@ -52,7 +52,7 @@ class IoTCoreStack(cdk.Stack):
                         sns=iot.CfnTopicRule.SnsActionProperty(
                             target_arn=alert_topic.topic_arn,
                             role_arn=lab_role_arn,
-                            message_format="JSON",
+                            message_format="RAW",
                         )
                     )
                 ],

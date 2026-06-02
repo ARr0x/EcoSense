@@ -125,7 +125,7 @@ def create_iot_policy(iot_client, region: str, client_id: str) -> str:
             {
                 "Effect": "Allow",
                 "Action": "iot:Publish",
-                "Resource": f"arn:aws:iot:{region}:*:topicfilter/metropole/*",
+                "Resource": f"arn:aws:iot:{region}:*:topic/metropole/*",
             },
             {
                 "Effect": "Allow",
