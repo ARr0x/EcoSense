@@ -16,11 +16,26 @@ export
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 # Variables (override possible : make deploy REGION=us-east-2)
-REGION         ?= us-east-1
-ACCOUNT_ID     ?= $(AWS_ACCOUNT_ID)
-CDK_BUCKET     := cdk-hnb659fds-assets-$(ACCOUNT_ID)-$(REGION)
-ARCHIVE_BUCKET := ecosense-archives-$(ACCOUNT_ID)-$(REGION)
-SNS_TOPIC_ARN  := arn:aws:sns:$(REGION):$(ACCOUNT_ID):ecosense-alert-$(REGION)
+REGION            ?= $(CDK_DEFAULT_REGION)
+REGION            ?= us-east-1
+SECONDARY_REGION  ?= us-east-2
+MULTI_REGION      ?= true
+ACCOUNT_ID        ?= $(AWS_ACCOUNT_ID)
+
+CDK_BUCKET                := cdk-hnb659fds-assets-$(ACCOUNT_ID)-$(REGION)
+CDK_BUCKET_SECONDARY      := cdk-hnb659fds-assets-$(ACCOUNT_ID)-$(SECONDARY_REGION)
+ARCHIVE_BUCKET            := ecosense-archives-$(ACCOUNT_ID)-$(REGION)
+ARCHIVE_BUCKET_SECONDARY  := ecosense-archives-$(ACCOUNT_ID)-$(SECONDARY_REGION)
+SNS_TOPIC_ARN             := arn:aws:sns:$(REGION):$(ACCOUNT_ID):ecosense-alert-$(REGION)
+
+# Stacks CDK selon MULTI_REGION
+STACKS_PRIMARY   := EcoSense-Primary
+ifeq ($(MULTI_REGION),true)
+STACKS_SECONDARY := EcoSense-Secondary
+else
+STACKS_SECONDARY :=
+endif
+STACKS_ALL := $(STACKS_PRIMARY) $(STACKS_SECONDARY)
 
 .DEFAULT_GOAL := help
 
@@ -33,11 +48,13 @@ help: ## Afficher cette aide
 	@echo ""
 	@echo "EcoSense — Commandes disponibles"
 	@echo "================================="
-	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
-	@echo "Variables (override : make <cmd> REGION=us-east-2) :"
-	@echo "  REGION     = $(REGION)"
-	@echo "  ACCOUNT_ID = $(ACCOUNT_ID)"
+	@echo "Variables actives :"
+	@echo "  REGION       = $(REGION)"
+	@echo "  MULTI_REGION = $(MULTI_REGION)"
+	@echo "  ACCOUNT_ID   = $(ACCOUNT_ID)"
+	@echo "  STACKS_ALL   = $(STACKS_ALL)"
 	@echo ""
 
 # ==============================================================================
@@ -67,54 +84,78 @@ install: venv ## Installer les dépendances Python (CDK + simulateur)
 	fi
 
 # ==============================================================================
-# CDK — Déploiement
+# CDK — Bootstrap (workaround Learner Lab)
 # ==============================================================================
 
 .PHONY: bootstrap-bucket
-bootstrap-bucket: ## Créer le bucket S3 CDK manuellement (workaround Learner Lab)
-	aws s3 mb s3://$(CDK_BUCKET) --region $(REGION)
+bootstrap-bucket: ## Créer le(s) bucket(s) S3 CDK requis par CliCredentialsStackSynthesizer
+	aws s3 mb s3://$(CDK_BUCKET) --region $(REGION) || true
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		echo "ℹ  MULTI_REGION=true — tentative pour $(SECONDARY_REGION) (peut échouer en Learner Lab)"; \
+		aws s3 mb s3://$(CDK_BUCKET_SECONDARY) --region $(SECONDARY_REGION) || true; \
+	fi
+
+# ==============================================================================
+# CDK — Déploiement
+# ==============================================================================
 
 .PHONY: synth
 synth: ## Générer les templates CloudFormation (validation)
 	cdk synth
 
 .PHONY: diff
-diff: ## Voir les changements depuis le dernier deploy
-	cdk diff
+diff: ## Voir les changements depuis le dernier deploy (toutes régions actives)
+	cdk diff $(STACKS_ALL)
 
 .PHONY: deploy
-deploy: ## Déployer les 3 stacks Primary (Sns + Storage + IoTCore)
-	cdk deploy Sns-Primary Storage-Primary IoTCore-Primary --require-approval never
+deploy: ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Secondary)
+	cdk deploy $(STACKS_ALL) --require-approval never
 
-.PHONY: deploy-iot
-deploy-iot: ## Redéployer uniquement IoTCore-Primary (après modif Topic Rules)
-	cdk deploy IoTCore-Primary --require-approval never
+.PHONY: deploy-primary
+deploy-primary: ## Déployer uniquement les stacks Primary
+	cdk deploy $(STACKS_PRIMARY) --require-approval never
+
+.PHONY: deploy-secondary
+deploy-secondary: ## Déployer uniquement les stacks Secondary (MULTI_REGION=true requis)
+	@if [ "$(MULTI_REGION)" != "true" ]; then \
+		echo "❌ MULTI_REGION=false dans .env — secondary désactivé"; exit 1; \
+	fi
+	cdk deploy $(STACKS_SECONDARY) --require-approval never
+
 
 .PHONY: empty-buckets
-empty-buckets: ## Vider les buckets S3 (archive versionné + CDK assets)
-	@echo "🧹 Vidage du bucket archive (toutes versions)..."
-	@aws s3api list-object-versions --bucket $(ARCHIVE_BUCKET) --region $(REGION) \
-		--output text --query 'Versions[].[Key,VersionId]' 2>/dev/null | \
+empty-buckets: ## Vider les buckets S3 archive + CDK assets (toutes régions actives)
+	@for bucket in $(ARCHIVE_BUCKET) $(if $(filter true,$(MULTI_REGION)),$(ARCHIVE_BUCKET_SECONDARY),); do \
+		echo "🧹 Vidage $$bucket (versions)..."; \
+		aws s3api list-object-versions --bucket $$bucket \
+			--output text --query 'Versions[].[Key,VersionId]' 2>/dev/null | \
 		while read key vid; do \
-			[ -z "$$key" ] || aws s3api delete-object --bucket $(ARCHIVE_BUCKET) \
-				--key "$$key" --version-id "$$vid" --region $(REGION) >/dev/null; \
-		done || true
-	@aws s3api list-object-versions --bucket $(ARCHIVE_BUCKET) --region $(REGION) \
-		--output text --query 'DeleteMarkers[].[Key,VersionId]' 2>/dev/null | \
+			[ -z "$$key" ] || aws s3api delete-object --bucket $$bucket \
+				--key "$$key" --version-id "$$vid" >/dev/null; \
+		done || true; \
+		aws s3api list-object-versions --bucket $$bucket \
+			--output text --query 'DeleteMarkers[].[Key,VersionId]' 2>/dev/null | \
 		while read key vid; do \
-			[ -z "$$key" ] || aws s3api delete-object --bucket $(ARCHIVE_BUCKET) \
-				--key "$$key" --version-id "$$vid" --region $(REGION) >/dev/null; \
-		done || true
-	@echo "🧹 Vidage du bucket CDK assets..."
-	@aws s3 rm s3://$(CDK_BUCKET) --recursive --region $(REGION) 2>/dev/null || true
+			[ -z "$$key" ] || aws s3api delete-object --bucket $$bucket \
+				--key "$$key" --version-id "$$vid" >/dev/null; \
+		done || true; \
+	done
+	@echo "🧹 Vidage buckets CDK assets..."
+	@for bucket in $(CDK_BUCKET) $(if $(filter true,$(MULTI_REGION)),$(CDK_BUCKET_SECONDARY),); do \
+		aws s3 rm s3://$$bucket --recursive 2>/dev/null || true; \
+	done
 	@echo "✅ Buckets vidés"
 
 .PHONY: destroy
-destroy: empty-buckets ## Détruire les 3 stacks + supprimer les buckets (clean total)
-	cdk destroy Sns-Primary Storage-Primary IoTCore-Primary --force
-	@echo "🧹 Suppression des buckets résiduels (RemovalPolicy.RETAIN)..."
-	@aws s3 rb s3://$(ARCHIVE_BUCKET) --region $(REGION) 2>/dev/null || true
-	@aws s3 rb s3://$(CDK_BUCKET) --region $(REGION) 2>/dev/null || true
+destroy: empty-buckets ## Détruire tous les stacks actifs + supprimer les buckets
+	cdk destroy $(STACKS_ALL) --force
+	@echo "🧹 Suppression des buckets résiduels..."
+	@for bucket in \
+		$(ARCHIVE_BUCKET) \
+		$(CDK_BUCKET) \
+		$(if $(filter true,$(MULTI_REGION)),$(ARCHIVE_BUCKET_SECONDARY) $(CDK_BUCKET_SECONDARY),); do \
+		aws s3 rb s3://$$bucket 2>/dev/null || true; \
+	done
 	@echo "✅ Destroy complet"
 
 # ==============================================================================
@@ -122,12 +163,25 @@ destroy: empty-buckets ## Détruire les 3 stacks + supprimer les buckets (clean 
 # ==============================================================================
 
 .PHONY: certs
-certs: ## Provisionner les certs X.509 pour us-east-1
-	python simulator/provision_certs.py us-east-1
+certs: ## Provisionner les certs X.509 pour la/les région(s) active(s)
+	python simulator/provision_certs.py $(REGION)
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		python simulator/provision_certs.py $(SECONDARY_REGION); \
+	fi
+
+.PHONY: certs-force
+certs-force: ## Recréer les certs X.509 (--force, écrase les existants)
+	python simulator/provision_certs.py $(REGION) --force
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		python simulator/provision_certs.py $(SECONDARY_REGION) --force; \
+	fi
 
 .PHONY: check
 check: ## Tester la connexion MQTT mTLS (exit 0/1)
 	python simulator/simulator_mqtt.py --check
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		python simulator/simulator_mqtt.py --check --region $(SECONDARY_REGION); \
+	fi
 
 .PHONY: dry-run
 dry-run: ## Générer des payloads sans publier (validation locale)
@@ -148,7 +202,7 @@ test-critical: ## Publier un message CRITICAL (→ SNS email + S3)
 		--payload '{"sensor_id":"S-TEST","metric":"CO2","value":1500,"unit":"ppm","status":"CRITICAL","region":"$(REGION)","quartier":"centre","timestamp":1717256400}' \
 		--cli-binary-format raw-in-base64-out \
 		--region $(REGION)
-	@echo "✅ CRITICAL publié sur metropole/centre/S-TEST/telemetry"
+	@echo "✅ CRITICAL publié sur metropole/centre/S-TEST/telemetry ($(REGION))"
 
 .PHONY: test-normal
 test-normal: ## Publier un message NORMAL (→ S3 seulement, pas d'alerte)
@@ -157,7 +211,7 @@ test-normal: ## Publier un message NORMAL (→ S3 seulement, pas d'alerte)
 		--payload '{"sensor_id":"S-TEST","metric":"CO2","value":500,"unit":"ppm","status":"NORMAL","region":"$(REGION)","quartier":"nord","timestamp":1717256400}' \
 		--cli-binary-format raw-in-base64-out \
 		--region $(REGION)
-	@echo "✅ NORMAL publié sur metropole/nord/S-TEST/telemetry"
+	@echo "✅ NORMAL publié sur metropole/nord/S-TEST/telemetry ($(REGION))"
 
 .PHONY: sns-test
 sns-test: ## Publier un test direct sur SNS (skip IoT, vérifie email)
@@ -172,8 +226,13 @@ sns-test: ## Publier un test direct sur SNS (skip IoT, vérifie email)
 # ==============================================================================
 
 .PHONY: iot-endpoint
-iot-endpoint: ## Afficher l'endpoint IoT Core (à mettre dans .env)
-	aws iot describe-endpoint --endpoint-type iot:Data-ATS --region $(REGION)
+iot-endpoint: ## Afficher l'endpoint IoT Core pour la/les région(s) active(s)
+	@echo "=== $(REGION) ==="
+	@aws iot describe-endpoint --endpoint-type iot:Data-ATS --region $(REGION)
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		echo "=== $(SECONDARY_REGION) ==="; \
+		aws iot describe-endpoint --endpoint-type iot:Data-ATS --region $(SECONDARY_REGION); \
+	fi
 
 .PHONY: s3-ls
 s3-ls: ## Lister les fichiers archivés dans S3
@@ -187,19 +246,20 @@ s3-latest: ## Afficher le contenu du dernier fichier S3
 	aws s3 cp s3://$(ARCHIVE_BUCKET)/$$LATEST - --region $(REGION)
 
 .PHONY: metrics-rules
-metrics-rules: ## Voir les RuleMatches des Topic Rules (10 dernières min)
-	@echo "=== AlertRule (CRITICAL → SNS) ==="
-	@aws cloudwatch get-metric-statistics --namespace AWS/IoT --metric-name RuleMatches \
-		--dimensions Name=RuleName,Value=ecosense_alert_rule \
-		--start-time $$(date -u -d '10 minutes ago' '+%Y-%m-%dT%H:%M:%S') \
-		--end-time $$(date -u '+%Y-%m-%dT%H:%M:%S') \
-		--period 60 --statistics Sum --region $(REGION)
-	@echo "=== ArchiveRule (ALL → Firehose) ==="
-	@aws cloudwatch get-metric-statistics --namespace AWS/IoT --metric-name RuleMatches \
-		--dimensions Name=RuleName,Value=ecosense_archive_rule \
-		--start-time $$(date -u -d '10 minutes ago' '+%Y-%m-%dT%H:%M:%S') \
-		--end-time $$(date -u '+%Y-%m-%dT%H:%M:%S') \
-		--period 60 --statistics Sum --region $(REGION)
+metrics-rules: ## Voir TopicMatch/Success/Failure des Topic Rules (10 dernières min)
+	@for rule in ecosense_alert_rule ecosense_archive_rule; do \
+		echo "=== $$rule ==="; \
+		for metric in TopicMatch Success Failure; do \
+			printf "  %-12s: " "$$metric"; \
+			aws cloudwatch get-metric-statistics --namespace AWS/IoT \
+				--metric-name $$metric \
+				--dimensions Name=RuleName,Value=$$rule \
+				--start-time $$(date -u -d '10 minutes ago' '+%Y-%m-%dT%H:%M:%S') \
+				--end-time $$(date -u '+%Y-%m-%dT%H:%M:%S') \
+				--period 600 --statistics Sum --region $(REGION) \
+				--query 'Datapoints[0].Sum' --output text 2>/dev/null || echo "0"; \
+		done; \
+	done
 
 .PHONY: metrics-sns
 metrics-sns: ## Voir les messages SNS publiés (15 dernières min)

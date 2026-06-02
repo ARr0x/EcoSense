@@ -50,6 +50,7 @@ class Config:
     burst_size: int
     burst_interval: float
     critical_rate: float
+    multi_region: bool = True
     forced_region: Optional[str] = None
     verbose: bool = False
     mqtt_debug: bool = False
@@ -101,6 +102,7 @@ def load_config(args: argparse.Namespace) -> Config:
         burst_size=args.burst_size or int(os.getenv("BURST_SIZE", "50")),
         burst_interval=args.burst_interval or float(os.getenv("BURST_INTERVAL", "1.0")),
         critical_rate=args.critical_rate or float(os.getenv("CRITICAL_RATE", "0.1")),
+        multi_region=os.getenv("MULTI_REGION", "true").lower() == "true",
         forced_region=args.region,
         verbose=args.verbose,
         mqtt_debug=args.mqtt_debug,
@@ -387,30 +389,34 @@ def cmd_run(config: Config) -> int:
         while True:
             burst_id += 1
 
-            # Failover si déconnecté
+            # Reconnexion / failover si déconnecté
             if not state["connected"]:
-                log.error("❌ Connexion perdue — tentative de failover...")
                 client.loop_stop()
 
-                other_region = (
-                    config.secondary_region
-                    if state["active_region"] == config.primary_region
-                    else config.primary_region
-                )
-                other_endpoint = (
-                    config.iot_endpoint_secondary
-                    if other_region == config.secondary_region
-                    else config.iot_endpoint_primary
-                )
-
-                log.warning(f"🔄 Basculement vers {other_region}")
-                state["active_region"] = other_region
+                if config.multi_region:
+                    other_region = (
+                        config.secondary_region
+                        if state["active_region"] == config.primary_region
+                        else config.primary_region
+                    )
+                    other_endpoint = (
+                        config.iot_endpoint_secondary
+                        if other_region == config.secondary_region
+                        else config.iot_endpoint_primary
+                    )
+                    log.error("❌ Connexion perdue — basculement multi-région...")
+                    log.warning(f"🔄 Basculement vers {other_region}")
+                    state["active_region"] = other_region
+                    reconnect_endpoint = other_endpoint
+                else:
+                    log.error("❌ Connexion perdue — reconnexion (multi-région désactivé)...")
+                    reconnect_endpoint = config.active_endpoint
 
                 client = build_mqtt_client(
                     config, on_connect_cb=on_connect, on_disconnect_cb=on_disconnect
                 )
-                if not connect_mqtt(client, other_endpoint):
-                    log.error(f"❌ Failover {other_region} échoué — pause 5s")
+                if not connect_mqtt(client, reconnect_endpoint):
+                    log.error(f"❌ Reconnexion échouée — pause 5s")
                     time.sleep(5)
                     continue
 
