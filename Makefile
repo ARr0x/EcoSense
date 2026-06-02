@@ -22,8 +22,8 @@ SECONDARY_REGION  ?= us-east-2
 MULTI_REGION      ?= true
 ACCOUNT_ID        ?= $(AWS_ACCOUNT_ID)
 
-CDK_BUCKET                := cdk-hnb659fds-assets-$(ACCOUNT_ID)-$(REGION)
-CDK_BUCKET_SECONDARY      := cdk-hnb659fds-assets-$(ACCOUNT_ID)-$(SECONDARY_REGION)
+CDK_BUCKET                := ecosense-cdk-$(ACCOUNT_ID)-$(REGION)
+CDK_BUCKET_SECONDARY      := ecosense-cdk-$(ACCOUNT_ID)-$(SECONDARY_REGION)
 ARCHIVE_BUCKET            := ecosense-archives-$(ACCOUNT_ID)-$(REGION)
 ARCHIVE_BUCKET_SECONDARY  := ecosense-archives-$(ACCOUNT_ID)-$(SECONDARY_REGION)
 SNS_TOPIC_ARN             := arn:aws:sns:$(REGION):$(ACCOUNT_ID):ecosense-alert-$(REGION)
@@ -88,12 +88,21 @@ install: venv ## Installer les dépendances Python (CDK + simulateur)
 # ==============================================================================
 
 .PHONY: bootstrap-bucket
-bootstrap-bucket: ## Créer le(s) bucket(s) S3 CDK requis par CliCredentialsStackSynthesizer
-	aws s3 mb s3://$(CDK_BUCKET) --region $(REGION) || true
+bootstrap-bucket: ## (Re)créer le(s) bucket(s) CDK — supprime et recrée si accès refusé
+	@$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET) BUCKET_REGION=$(REGION)
 	@if [ "$(MULTI_REGION)" = "true" ]; then \
 		echo "ℹ  MULTI_REGION=true — tentative pour $(SECONDARY_REGION) (peut échouer en Learner Lab)"; \
-		aws s3 mb s3://$(CDK_BUCKET_SECONDARY) --region $(SECONDARY_REGION) || true; \
+		$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET_SECONDARY) BUCKET_REGION=$(SECONDARY_REGION) || true; \
 	fi
+
+# Cible interne : vide, supprime et recrée un bucket (gère "bucket exists but no access")
+.PHONY: _reset-bucket
+_reset-bucket:
+	@echo "🔄 Reset bucket s3://$(BUCKET)..."
+	@aws s3 rm s3://$(BUCKET) --recursive --region $(BUCKET_REGION) 2>/dev/null || true
+	@aws s3api delete-bucket --bucket $(BUCKET) --region $(BUCKET_REGION) 2>/dev/null || true
+	@aws s3 mb s3://$(BUCKET) --region $(BUCKET_REGION)
+	@echo "✅ Bucket s3://$(BUCKET) prêt"
 
 # ==============================================================================
 # CDK — Déploiement

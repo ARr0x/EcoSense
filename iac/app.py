@@ -60,6 +60,8 @@ app = cdk.App()
 
 
 def create_stack(region: str, label: str) -> EcoSenseStack:
+    # Bucket custom pour éviter le blocage voc-cancel-cred sur cdk-hnb659fds-*
+    assets_bucket = f"ecosense-cdk-{AWS_ACCOUNT_ID}-{region}"
     return EcoSenseStack(
         app,
         f"EcoSense-{label}",
@@ -68,7 +70,9 @@ def create_stack(region: str, label: str) -> EcoSenseStack:
         firehose_buffer_seconds=FIREHOSE_BUFFER_SEC,
         firehose_buffer_mb=FIREHOSE_BUFFER_MB,
         env=cdk.Environment(account=AWS_ACCOUNT_ID, region=region),
-        synthesizer=cdk.CliCredentialsStackSynthesizer(),
+        synthesizer=cdk.CliCredentialsStackSynthesizer(
+            file_assets_bucket_name=assets_bucket,
+        ),
     )
 
 
