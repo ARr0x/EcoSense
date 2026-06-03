@@ -61,6 +61,13 @@ Copier `.env.example` vers `.env` et renseigner `AWS_ACCOUNT_ID` et `ALERT_EMAIL
 | `make check` | Teste la connexion MQTT mTLS (exit 0 = OK) |
 | `make run` | Lance le simulateur en mode publication |
 
+Si `make deploy` échoue avec une erreur d'accès ou de bucket CDK introuvable, recréer les buckets avant de relancer :
+
+```bash
+make bootstrap-bucket
+make deploy
+```
+
 Consulter `make help` pour la liste complète des cibles disponibles.
 
 ## Documentation

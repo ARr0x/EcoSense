@@ -23,19 +23,14 @@ import aws_cdk as cdk
 from dotenv import find_dotenv, load_dotenv
 from stacks.ecosense_stack import EcoSenseStack
 
-# =============================================================================
-# Charger .env depuis la racine du dépôt
-# =============================================================================
-
 env_path = find_dotenv(usecwd=True)
 if env_path:
     load_dotenv(env_path)
 
-# Variables obligatoires
 AWS_ACCOUNT_ID = os.environ.get("AWS_ACCOUNT_ID")
 if not AWS_ACCOUNT_ID:
     raise ValueError(
-        "❌ AWS_ACCOUNT_ID manquant dans .env\n"
+        "AWS_ACCOUNT_ID manquant dans .env\n"
         "   Récupérer depuis la console AWS (en haut à droite)"
     )
 
@@ -43,21 +38,15 @@ PRIMARY_REGION = os.environ.get("CDK_DEFAULT_REGION", "us-east-1")
 SECONDARY_REGION = os.environ.get("SECONDARY_REGION", "us-east-2")
 MULTI_REGION = os.environ.get("MULTI_REGION", "true").lower() == "true"
 
-# Variables optionnelles pour SNS
-ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "")  # ex: team@example.com
+ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "")
 
-# Paramètres S3 / Firehose
 S3_BUCKET_PREFIX = os.environ.get("S3_BUCKET_PREFIX", "ecosense-archives")
 FIREHOSE_BUFFER_SEC = int(os.environ.get("FIREHOSE_BUFFER_SECONDS", "60"))
 FIREHOSE_BUFFER_MB = int(os.environ.get("FIREHOSE_BUFFER_MB", "5"))
 
-# Intervalle initial du backoff d'alertes (300 = 5 min prod, 20 = démo)
+# 300 = 5 min prod, 20 = démo
 FIRST_INTERVAL_SEC = int(os.environ.get("FIRST_INTERVAL_SEC", "300"))
 
-
-# =============================================================================
-# App CDK
-# =============================================================================
 
 app = cdk.App()
 
@@ -80,24 +69,12 @@ def create_stack(region: str, label: str) -> EcoSenseStack:
     )
 
 
-# =============================================================================
-# Déploiement
-# =============================================================================
-
 primary = create_stack(PRIMARY_REGION, "Primary")
 secondary = create_stack(SECONDARY_REGION, "Secondary") if MULTI_REGION else None
-
-# =============================================================================
-# Tags globaux
-# =============================================================================
 
 for stack in filter(None, [primary, secondary]):
     cdk.Tags.of(stack).add("Project", "EcoSense")
     cdk.Tags.of(stack).add("ManagedBy", "CDK")
     cdk.Tags.of(stack).add("Environment", "Hackathon")
-
-# =============================================================================
-# Synth
-# =============================================================================
 
 app.synth()

@@ -22,10 +22,8 @@ from typing import Optional
 import paho.mqtt.client as mqtt
 from dotenv import find_dotenv, load_dotenv
 
-# === Logging ===
 log = logging.getLogger("ecosense-sim")
 
-# === Seuils par métrique ===
 METRICS = {
     "CO2": {"unit": "ppm", "normal": (400, 1000), "critical_mult": 1.2},
     "NO2": {"unit": "µg/m³", "normal": (0, 200), "critical_mult": 1.2},
@@ -34,11 +32,9 @@ METRICS = {
     "HUMIDITY": {"unit": "%", "normal": (20, 95), "critical_mult": 1.1},
 }
 
-# === Quartiers (districts) pour distribution géographique ===
 QUARTIERS = ["centre", "nord", "sud", "est", "ouest"]
 
 
-# === Configuration ===
 @dataclass
 class Config:
     iot_endpoint_primary: str
@@ -79,7 +75,7 @@ def get_repo_root() -> Path:
 def load_config(args: argparse.Namespace) -> Config:
     env_path = find_dotenv(usecwd=True)
     if not env_path:
-        log.error("❌ .env introuvable à la racine du dépôt")
+        log.error(".env introuvable à la racine du dépôt")
         log.error("   Copier .env.example vers .env et remplir les variables")
         sys.exit(1)
 
@@ -88,7 +84,7 @@ def load_config(args: argparse.Namespace) -> Config:
 
     primary_endpoint = os.getenv("IOT_ENDPOINT_PRIMARY")
     if not primary_endpoint:
-        log.error("❌ IOT_ENDPOINT_PRIMARY manquant dans .env")
+        log.error("IOT_ENDPOINT_PRIMARY manquant dans .env")
         log.error("   Récupérer la valeur après : cdk deploy")
         sys.exit(1)
 
@@ -139,9 +135,9 @@ def verify_certificates(config: Config) -> bool:
     for filename, description in required.items():
         path = cert_dir / filename
         if path.exists():
-            log.debug(f"✓ {description} : {path}")
+            log.debug(f"{description} : {path}")
         else:
-            log.error(f"❌ {description} manquant : {path}")
+            log.error(f"{description} manquant : {path}")
             all_found = False
 
     if not all_found:
@@ -263,9 +259,9 @@ def cmd_check(config: Config) -> int:
     def on_connect(client, userdata, flags, reason_code, properties):
         connection_state["rc"] = reason_code.value
         if reason_code.value == 0:
-            log.info("✅ Connected to IoT Core (rc=0)")
+            log.info("Connecté à IoT Core (rc=0)")
         else:
-            log.error(f"❌ {mqtt_error_message(reason_code.value)}")
+            log.error(f"Connexion refusée : {mqtt_error_message(reason_code.value)}")
 
     client = build_mqtt_client(config, on_connect_cb=on_connect)
 
@@ -276,18 +272,18 @@ def cmd_check(config: Config) -> int:
         client.disconnect()
 
         if ok:
-            log.info("✅ TLS handshake OK — déconnexion propre")
+            log.info("TLS handshake OK — déconnexion propre")
             log.info("=" * 60)
             return 0
         else:
             if connection_state["rc"] is None:
-                log.error("❌ Timeout — IoT Core n'a pas répondu en 10s")
+                log.error("Timeout — IoT Core n'a pas répondu en 10s")
                 log.error("   Vérifier IOT_ENDPOINT_PRIMARY dans .env")
             log.error("=" * 60)
             return 1
 
     except Exception as e:
-        log.error(f"❌ Exception : {e}")
+        log.error(f"Exception : {e}")
         try:
             client.loop_stop()
             client.disconnect()
@@ -321,7 +317,7 @@ def cmd_dry_run(config: Config) -> int:
                 if payload["status"] == "CRITICAL":
                     critical_count += 1
                     log.warning(
-                        f"[DRY] 🚨 {payload['sensor_id']} | "
+                        f"[DRY][CRITICAL] {payload['sensor_id']} | "
                         f"{payload['metric']}={payload['value']}{payload['unit']}"
                     )
                 else:
@@ -338,7 +334,7 @@ def cmd_dry_run(config: Config) -> int:
             time.sleep(config.burst_interval)
 
     except KeyboardInterrupt:
-        log.info(f"\n✋ Arrêt après {burst_id} salves")
+        log.info(f"\nArrêt après {burst_id} salves")
         return 0
 
 
@@ -366,14 +362,14 @@ def cmd_run(config: Config) -> int:
     def on_connect(client, userdata, flags, reason_code, properties):
         state["connected"] = reason_code.value == 0
         if reason_code.value == 0:
-            log.info(f"✅ Connecté à IoT Core ({state['active_region']})")
+            log.info(f"Connecté à IoT Core ({state['active_region']})")
         else:
-            log.error(f"❌ {mqtt_error_message(reason_code.value)}")
+            log.error(f"Connexion refusée : {mqtt_error_message(reason_code.value)}")
 
     def on_disconnect(client, userdata, flags, reason_code, properties):
         state["connected"] = False
         if reason_code.value != 0:
-            log.warning(f"⚠ Déconnexion inattendue (rc={reason_code.value})")
+            log.warning(f"Déconnexion inattendue (rc={reason_code.value})")
 
     client = build_mqtt_client(
         config, on_connect_cb=on_connect, on_disconnect_cb=on_disconnect
@@ -381,7 +377,7 @@ def cmd_run(config: Config) -> int:
 
     log.info(f"Connexion à {config.active_endpoint}:8883...")
     if not connect_mqtt(client, config.active_endpoint):
-        log.error("❌ Impossible de se connecter")
+        log.error("Impossible de se connecter")
         return 1
 
     burst_id = 0
@@ -389,7 +385,6 @@ def cmd_run(config: Config) -> int:
         while True:
             burst_id += 1
 
-            # Reconnexion / failover si déconnecté
             if not state["connected"]:
                 client.loop_stop()
 
@@ -404,23 +399,22 @@ def cmd_run(config: Config) -> int:
                         if other_region == config.secondary_region
                         else config.iot_endpoint_primary
                     )
-                    log.error("❌ Connexion perdue — basculement multi-région...")
-                    log.warning(f"🔄 Basculement vers {other_region}")
+                    log.error("Connexion perdue — basculement multi-région...")
+                    log.warning(f"Basculement vers {other_region}")
                     state["active_region"] = other_region
                     reconnect_endpoint = other_endpoint
                 else:
-                    log.error("❌ Connexion perdue — reconnexion (multi-région désactivé)...")
+                    log.error("Connexion perdue — reconnexion (multi-région désactivé)...")
                     reconnect_endpoint = config.active_endpoint
 
                 client = build_mqtt_client(
                     config, on_connect_cb=on_connect, on_disconnect_cb=on_disconnect
                 )
                 if not connect_mqtt(client, reconnect_endpoint):
-                    log.error(f"❌ Reconnexion échouée — pause 5s")
+                    log.error("Reconnexion échouée — pause 5s")
                     time.sleep(5)
                     continue
 
-            # Publier une salve
             sensor_ids = random.sample(
                 range(1, config.sensor_count + 1),
                 min(config.burst_size, config.sensor_count),
@@ -442,7 +436,7 @@ def cmd_run(config: Config) -> int:
                     if payload["status"] == "CRITICAL":
                         critical += 1
                         log.warning(
-                            f"🚨 CRITICAL | {payload['sensor_id']} | "
+                            f"CRITICAL | {payload['sensor_id']} | "
                             f"{payload['metric']}={payload['value']}{payload['unit']}"
                         )
                 else:
@@ -459,7 +453,7 @@ def cmd_run(config: Config) -> int:
             time.sleep(config.burst_interval)
 
     except KeyboardInterrupt:
-        log.info(f"\n✋ Arrêt")
+        log.info(f"\nArrêt")
         log.info(f"  Publiés : {state['published']}")
         log.info(f"  Erreurs : {state['failed']}")
         client.loop_stop()
@@ -537,7 +531,7 @@ def main() -> int:
         else:
             return cmd_run(config)
     except KeyboardInterrupt:
-        log.info("\n✋ Interrompu")
+        log.info("\nInterrompu")
         return 130
 
 

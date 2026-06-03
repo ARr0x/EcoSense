@@ -33,9 +33,7 @@ class IoTCoreStack(Construct):
         lab_role_arn = f"arn:aws:iam::{stack.account}:role/LabRole"
 
         # =====================================================================
-        # Topic Rule 1 — CRITICAL → SQS (agrégation par quartier via Lambda)
-        # Filtre les messages avec status = 'CRITICAL'
-        # topic(2) AS quartier extrait le quartier du topic MQTT
+        # Topic Rule — CRITICAL → SQS
         # =====================================================================
         iot.CfnTopicRule(
             self,
@@ -64,9 +62,7 @@ class IoTCoreStack(Construct):
         )
 
         # =====================================================================
-        # Topic Rule 2 — ALL → Firehose
-        # 100% du flux, sans filtre
-        # Écrit dans Kinesis Firehose → S3 → Athena
+        # Topic Rule — ALL → Firehose
         # =====================================================================
         iot.CfnTopicRule(
             self,
