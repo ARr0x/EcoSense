@@ -2,11 +2,12 @@
 handler.py — Lambda Flush (déclenchée par EventBridge Scheduler)
 
 Rôle :
-  1. Récupère toutes les alertes pendantes d'un quartier depuis last_sent_at
-  2. Si alertes présentes → envoie un email groupé via SNS
+  1. Récupère toutes les alertes du quartier depuis DynamoDB
+  2. Si de nouvelles alertes depuis le dernier envoi → envoie un email "feed"
+       avec les nouvelles alertes + l'historique complet du quartier
        → double l'intervalle (cap 43200 sec = 12h)
        → planifie le prochain flush
-  3. Si aucune alerte → reset complet (quartier calme, cycle repart à zéro)
+  3. Si aucune nouvelle alerte → reset complet (quartier calme, cycle repart à zéro)
 """
 
 import json
@@ -52,17 +53,18 @@ def handler(event, context):
     last_sent_at = state["last_sent_at"]
     current_interval = int(state["current_interval_sec"])
 
-    alertes_resp = alerts_table.query(
-        KeyConditionExpression=Key("quartier").eq(quartier) & Key("alert_ts").gt(last_sent_at)
+    toutes_resp = alerts_table.query(
+        KeyConditionExpression=Key("quartier").eq(quartier)
     )
-    alertes = alertes_resp.get("Items", [])
+    toutes_alertes = sorted(toutes_resp.get("Items", []), key=lambda a: a["alert_ts"])
+    nouvelles = [a for a in toutes_alertes if a["alert_ts"] > last_sent_at]
 
-    if not alertes:
+    if not nouvelles:
         state_table.delete_item(Key={"quartier": quartier})
         logger.info("Quartier %s calme, état réinitialisé", quartier)
         return
 
-    _envoyer_mail_groupe(quartier, alertes, current_interval, now)
+    _envoyer_mail_feed(quartier, nouvelles, toutes_alertes, current_interval, now)
 
     next_interval = min(current_interval * 2, INTERVAL_MAX_SEC)
     next_time = now + timedelta(seconds=next_interval)
@@ -77,7 +79,10 @@ def handler(event, context):
             ":sched": schedule_name,
         },
     )
-    logger.info("Quartier %s : %d alertes envoyées, prochain flush dans %ds", quartier, len(alertes), next_interval)
+    logger.info(
+        "Quartier %s : %d nouvelles alertes envoyées, prochain flush dans %ds",
+        quartier, len(nouvelles), next_interval,
+    )
 
 
 def _duree_str(secondes: int) -> str:
@@ -88,41 +93,49 @@ def _duree_str(secondes: int) -> str:
     return f"{secondes // 3600}h"
 
 
-def _envoyer_mail_groupe(quartier: str, alertes: list, intervalle_sec: int, now: datetime):
-    alertes_triees = sorted(alertes, key=lambda a: a["alert_ts"])
-    nb = len(alertes_triees)
+def _format_ligne(a: dict) -> str:
+    try:
+        p = json.loads(a["payload"])
+    except Exception:
+        p = {}
+    capteur = p.get("sensor_id", p.get("sensor_id_topic", "?"))
+    ts = a["alert_ts"][11:19]  # HH:MM:SS
+    champs = ", ".join(
+        f"{k}={v}"
+        for k, v in p.items()
+        if k not in ("quartier", "sensor_id", "sensor_id_topic", "status")
+    )
+    return f"  {ts} | Capteur {capteur} | {champs}"
+
+
+def _envoyer_mail_feed(
+    quartier: str,
+    nouvelles: list,
+    toutes: list,
+    intervalle_sec: int,
+    now: datetime,
+):
+    precedentes = [a for a in toutes if a not in nouvelles]
     heure = now.strftime("%H:%M UTC")
-
-    lignes = []
-    for a in alertes_triees:
-        try:
-            p = json.loads(a["payload"])
-        except Exception:
-            p = {}
-        capteur = p.get("sensor_id", p.get("sensor_id_topic", "?"))
-        ts_court = a["alert_ts"][11:19]
-        champs = ", ".join(
-            f"{k}={v}"
-            for k, v in p.items()
-            if k not in ("quartier", "sensor_id", "sensor_id_topic", "status")
-        )
-        lignes.append(f"  {ts_court} | Capteur {capteur} | {champs}")
-
-    duree = _duree_str(intervalle_sec)
     prochaine = _duree_str(min(intervalle_sec * 2, INTERVAL_MAX_SEC))
 
-    message = (
-        f"RÉSUMÉ ALERTES CRITICAL — {quartier.upper()}\n\n"
-        f"{nb} alerte(s) CRITICAL détectée(s) sur les dernières {duree} :\n\n"
-        f"{chr(10).join(lignes)}\n\n"
-        f"Heure du rapport : {heure}\n"
-        f"Prochaine notification dans {prochaine} si les alertes persistent."
-    )
+    lignes = [f"=== NOUVELLES ({len(nouvelles)}) ==="]
+    lignes += [_format_ligne(a) for a in nouvelles]
+
+    if precedentes:
+        lignes.append(f"\n=== HISTORIQUE ({len(precedentes)}) ===")
+        lignes += [_format_ligne(a) for a in precedentes]
+
+    lignes += [
+        "",
+        f"Rapport généré à {heure}",
+        f"Prochaine notification dans {prochaine} si les alertes persistent.",
+    ]
 
     sns_client.publish(
         TopicArn=SNS_TOPIC_ARN,
-        Subject=f"[EcoSense] {nb} alertes CRITICAL — {quartier} ({duree})",
-        Message=message,
+        Subject=f"[EcoSense] CRITICAL — {quartier.upper()}",
+        Message="\n".join(lignes),
     )
 
 

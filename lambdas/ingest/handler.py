@@ -116,7 +116,7 @@ def _envoyer_mail_immediat(quartier: str, payload: dict, now: datetime):
 
     sns_client.publish(
         TopicArn=SNS_TOPIC_ARN,
-        Subject=f"[EcoSense] CRITICAL — {quartier}",
+        Subject=f"[EcoSense] CRITICAL — {quartier.upper()}",
         Message=message,
     )
 
