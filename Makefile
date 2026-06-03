@@ -87,6 +87,16 @@ install: venv ## Installer les dépendances Python (CDK + simulateur)
 # CDK — Bootstrap (workaround Learner Lab)
 # ==============================================================================
 
+.PHONY: lab-restart
+lab-restart: ## ♻  Après chaque lab restart : bucket CDK + deploy + certs
+	@echo "=== 1/3 bucket CDK ==="
+	@$(MAKE) bootstrap-bucket
+	@echo "=== 2/3 deploy ==="
+	cdk deploy $(STACKS_ALL) --require-approval never --import-existing-resources
+	@echo "=== 3/3 certs ==="
+	@$(MAKE) certs-force
+	@echo "✅ Lab prêt — penser à mettre à jour IOT_ENDPOINT_* dans .env si l'endpoint a changé"
+
 .PHONY: bootstrap-bucket
 bootstrap-bucket: ## (Re)créer le(s) bucket(s) CDK — supprime et recrée si accès refusé
 	@$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET) BUCKET_REGION=$(REGION)
@@ -118,18 +128,18 @@ diff: ## Voir les changements depuis le dernier deploy (toutes régions actives)
 
 .PHONY: deploy
 deploy: ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Secondary)
-	cdk deploy $(STACKS_ALL) --require-approval never
+	cdk deploy $(STACKS_ALL) --require-approval never --import-existing-resources
 
 .PHONY: deploy-primary
 deploy-primary: ## Déployer uniquement les stacks Primary
-	cdk deploy $(STACKS_PRIMARY) --require-approval never
+	cdk deploy $(STACKS_PRIMARY) --require-approval never --import-existing-resources
 
 .PHONY: deploy-secondary
 deploy-secondary: ## Déployer uniquement les stacks Secondary (MULTI_REGION=true requis)
 	@if [ "$(MULTI_REGION)" != "true" ]; then \
 		echo "❌ MULTI_REGION=false dans .env — secondary désactivé"; exit 1; \
 	fi
-	cdk deploy $(STACKS_SECONDARY) --require-approval never
+	cdk deploy $(STACKS_SECONDARY) --require-approval never --import-existing-resources
 
 
 .PHONY: empty-buckets
