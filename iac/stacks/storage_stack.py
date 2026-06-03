@@ -43,7 +43,6 @@ class StorageStack(Construct):
             self,
             "ArchiveBucket",
             bucket_name=bucket_name,
-            versioned=True,
             removal_policy=cdk.RemovalPolicy.RETAIN,  # ne pas supprimer sur cdk destroy
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             encryption=s3.BucketEncryption.S3_MANAGED,
@@ -74,7 +73,7 @@ class StorageStack(Construct):
                     interval_in_seconds=firehose_buffer_seconds,
                     size_in_m_bs=firehose_buffer_mb,
                 ),
-                compression_format="UNCOMPRESSED",  # JSON lisible directement
+                compression_format="GZIP",
                 cloud_watch_logging_options=firehose.CfnDeliveryStream.CloudWatchLoggingOptionsProperty(
                     enabled=True,
                     log_group_name=f"/ecosense/firehose/{stack.region}",
@@ -156,7 +155,6 @@ class StorageStack(Construct):
             ),
         )
 
-        # Glue table dépend de la database
         glue_table.add_dependency(glue_database)
 
         # =====================================================================
@@ -199,6 +197,13 @@ class StorageStack(Construct):
             "FirehoseName",
             value=self.delivery_stream.ref,
             description="Nom du Firehose delivery stream",
+        )
+
+        cdk.CfnOutput(
+            self,
+            "FirehoseArn",
+            value=f"arn:aws:firehose:{stack.region}:{stack.account}:deliverystream/{self.delivery_stream.ref}",
+            description="ARN du Firehose delivery stream",
         )
 
         cdk.CfnOutput(

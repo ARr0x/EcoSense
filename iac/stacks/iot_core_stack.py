@@ -2,14 +2,14 @@
 iot_core_stack.py — EcoSense IoT Core Stack
 
 Crée les Topic Rules SQL qui routent les messages MQTT :
-  - CRITICAL → SNS Alert Topic → Email/SMS
+  - CRITICAL → SQS AlertsQueue → Lambda Ingest (agrégation par quartier)
   - ALL      → Kinesis Firehose → S3 → Athena
 
 Reçoit en paramètre :
-  - alert_topic      : sns.Topic (depuis sns_stack)
+  - alert_queue_url  : str (depuis alert_aggregator_stack)
   - delivery_stream  : firehose.CfnDeliveryStream (depuis storage_stack)
 
-Utilise LabRole pour les permissions IoT Core → SNS et IoT Core → Firehose.
+Utilise LabRole pour les permissions IoT Core → SQS et IoT Core → Firehose.
 """
 
 import aws_cdk as cdk
@@ -23,7 +23,7 @@ class IoTCoreStack(Construct):
         self,
         scope: Construct,
         construct_id: str,
-        alert_topic_arn: str,
+        alert_queue_url: str,
         delivery_stream_name: str,
         **kwargs,
     ) -> None:
@@ -33,9 +33,7 @@ class IoTCoreStack(Construct):
         lab_role_arn = f"arn:aws:iam::{stack.account}:role/LabRole"
 
         # =====================================================================
-        # Topic Rule 1 — CRITICAL → SNS
-        # Filtre les messages avec status = 'CRITICAL'
-        # Publie dans le SNS Alert Topic
+        # Topic Rule — CRITICAL → SQS
         # =====================================================================
         iot.CfnTopicRule(
             self,
@@ -44,13 +42,13 @@ class IoTCoreStack(Construct):
             topic_rule_payload=iot.CfnTopicRule.TopicRulePayloadProperty(
                 rule_disabled=False,
                 aws_iot_sql_version="2016-03-23",
-                sql="SELECT * FROM 'metropole/+/+/telemetry' WHERE status = 'CRITICAL'",
+                sql="SELECT *, topic(2) AS quartier, topic(3) AS sensor_id_topic FROM 'metropole/+/+/telemetry' WHERE status = 'CRITICAL'",
                 actions=[
                     iot.CfnTopicRule.ActionProperty(
-                        sns=iot.CfnTopicRule.SnsActionProperty(
-                            target_arn=alert_topic_arn,
+                        sqs=iot.CfnTopicRule.SqsActionProperty(
+                            queue_url=alert_queue_url,
                             role_arn=lab_role_arn,
-                            message_format="RAW",
+                            use_base64=False,
                         )
                     )
                 ],
@@ -64,9 +62,7 @@ class IoTCoreStack(Construct):
         )
 
         # =====================================================================
-        # Topic Rule 2 — ALL → Firehose
-        # 100% du flux, sans filtre
-        # Écrit dans Kinesis Firehose → S3 → Athena
+        # Topic Rule — ALL → Firehose
         # =====================================================================
         iot.CfnTopicRule(
             self,
@@ -101,7 +97,7 @@ class IoTCoreStack(Construct):
             self,
             "AlertRuleName",
             value="ecosense_alert_rule",
-            description="Nom de la Topic Rule CRITICAL → SNS",
+            description="Nom de la Topic Rule CRITICAL → SQS",
         )
 
         cdk.CfnOutput(

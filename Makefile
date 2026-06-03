@@ -16,10 +16,9 @@ export
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 # Variables (override possible : make deploy REGION=us-east-2)
-REGION            ?= $(CDK_DEFAULT_REGION)
-REGION            ?= us-east-1
+REGION            ?= $(if $(CDK_DEFAULT_REGION),$(CDK_DEFAULT_REGION),us-east-1)
 SECONDARY_REGION  ?= us-east-2
-MULTI_REGION      ?= true
+MULTI_REGION      ?= false
 ACCOUNT_ID        ?= $(AWS_ACCOUNT_ID)
 
 CDK_BUCKET                := ecosense-cdk-$(ACCOUNT_ID)-$(REGION)
@@ -27,6 +26,9 @@ CDK_BUCKET_SECONDARY      := ecosense-cdk-$(ACCOUNT_ID)-$(SECONDARY_REGION)
 ARCHIVE_BUCKET            := ecosense-archives-$(ACCOUNT_ID)-$(REGION)
 ARCHIVE_BUCKET_SECONDARY  := ecosense-archives-$(ACCOUNT_ID)-$(SECONDARY_REGION)
 SNS_TOPIC_ARN             := arn:aws:sns:$(REGION):$(ACCOUNT_ID):ecosense-alert-$(REGION)
+
+UV     := $(shell command -v uv)
+PYTHON := $(shell command -v python3)
 
 # Stacks CDK selon MULTI_REGION
 STACKS_PRIMARY   := EcoSense-Primary
@@ -62,25 +64,51 @@ help: ## Afficher cette aide
 # ==============================================================================
 
 .PHONY: venv
-venv: ## Créer le venv (.venv) — uv si dispo, sinon python -m venv
-	@if [ ! -d .venv ]; then \
-		if command -v uv >/dev/null 2>&1; then \
-			uv venv .venv; \
+venv: ## Créer le venv (.venv) — uv si dispo, sinon python3 -m venv
+	@if [ -d .venv ]; then \
+		echo ".venv existe déjà"; \
+	elif [ -n "$(UV)" ]; then \
+		uv venv .venv; \
+		echo "Venv créé avec uv"; \
+	elif [ -n "$(PYTHON)" ]; then \
+		if $(PYTHON) -m venv .venv; then \
+			echo "Venv créé avec python3"; \
 		else \
-			python -m venv .venv; \
+			echo "Erreur : impossible de créer le venv avec python3."; \
+			echo "  Le module venv est manquant. Installer l'une des options :"; \
+			echo "    sudo apt install python3-venv  (Debian/Ubuntu)"; \
+			echo "    pip install virtualenv"; \
+			echo "    https://docs.astral.sh/uv  (recommandé)"; \
+			exit 1; \
 		fi; \
-		echo "✅ Venv créé dans .venv"; \
 	else \
-		echo "ℹ️  .venv existe déjà"; \
+		echo "Erreur : Python 3 introuvable."; \
+		echo "  Installer l'une des options :"; \
+		echo "    https://python.org  (Python 3.12+)"; \
+		echo "    https://docs.astral.sh/uv  (recommandé)"; \
+		exit 1; \
 	fi
+
+.PHONY: bootstrap
+bootstrap: install bootstrap-bucket ## Premier démarrage : venv + dépendances + bucket CDK
+	@echo ""
+	@echo "Bootstrap terminé. Prochaines étapes :"
+	@echo "  1. make deploy"
+	@echo "  2. Remplir IOT_ENDPOINT_* dans .env (après deploy)"
+	@echo "  3. python simulator/provision_certs.py us-east-1"
+	@echo "  4. python simulator/simulator_mqtt.py --check"
+	@echo ""
 
 .PHONY: install
 install: venv ## Installer les dépendances Python (CDK + simulateur)
-	@if command -v uv >/dev/null 2>&1; then \
+	@if [ -n "$(UV)" ]; then \
 		uv pip install -r iac/requirements.txt -r simulator/requirements.txt; \
+	elif command -v pip; then \
+		pip install -r iac/requirements.txt -r simulator/requirements.txt; \
 	else \
-		pip install -r iac/requirements.txt; \
-		pip install -r simulator/requirements.txt; \
+		echo "Erreur : ni uv ni pip disponibles."; \
+		echo "  Lancer 'make venv' puis réessayer."; \
+		exit 1; \
 	fi
 
 # ==============================================================================
@@ -88,35 +116,48 @@ install: venv ## Installer les dépendances Python (CDK + simulateur)
 # ==============================================================================
 
 .PHONY: lab-restart
-lab-restart: ## ♻  Après chaque lab restart : bucket CDK + deploy + certs
+lab-restart: ## Après chaque lab restart : bucket CDK + deploy + certs
 	@echo "=== 1/3 bucket CDK ==="
 	@$(MAKE) bootstrap-bucket
 	@echo "=== 2/3 deploy ==="
 	cdk deploy $(STACKS_ALL) --require-approval never --import-existing-resources
 	@echo "=== 3/3 certs ==="
 	@$(MAKE) certs-force
-	@echo "✅ Lab prêt — penser à mettre à jour IOT_ENDPOINT_* dans .env si l'endpoint a changé"
+	@echo "Lab prêt — penser à mettre à jour IOT_ENDPOINT_* dans .env si l'endpoint a changé"
 
 .PHONY: bootstrap-bucket
 bootstrap-bucket: ## (Re)créer le(s) bucket(s) CDK — supprime et recrée si accès refusé
 	@$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET) BUCKET_REGION=$(REGION)
 	@if [ "$(MULTI_REGION)" = "true" ]; then \
-		echo "ℹ  MULTI_REGION=true — tentative pour $(SECONDARY_REGION) (peut échouer en Learner Lab)"; \
-		$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET_SECONDARY) BUCKET_REGION=$(SECONDARY_REGION) || true; \
+		echo "MULTI_REGION=true — tentative pour $(SECONDARY_REGION) (peut échouer en Learner Lab)"; \
+		$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET_SECONDARY) BUCKET_REGION=$(SECONDARY_REGION); \
 	fi
 
 # Cible interne : vide, supprime et recrée un bucket (gère "bucket exists but no access")
 .PHONY: _reset-bucket
 _reset-bucket:
-	@echo "🔄 Reset bucket s3://$(BUCKET)..."
-	@aws s3 rm s3://$(BUCKET) --recursive --region $(BUCKET_REGION) 2>/dev/null || true
-	@aws s3api delete-bucket --bucket $(BUCKET) --region $(BUCKET_REGION) 2>/dev/null || true
+	@echo "Reset bucket s3://$(BUCKET)..."
+	@if aws s3api head-bucket --bucket $(BUCKET) --region $(BUCKET_REGION); then \
+		aws s3 rm s3://$(BUCKET) --recursive --region $(BUCKET_REGION); \
+		aws s3api delete-bucket --bucket $(BUCKET) --region $(BUCKET_REGION); \
+	else \
+		echo "Bucket $(BUCKET) absent, création..."; \
+	fi
 	@aws s3 mb s3://$(BUCKET) --region $(BUCKET_REGION)
-	@echo "✅ Bucket s3://$(BUCKET) prêt"
+	@echo "Bucket s3://$(BUCKET) prêt"
 
 # ==============================================================================
 # CDK — Déploiement
 # ==============================================================================
+
+.PHONY: _check-env
+_check-env:
+	@if [ -z "$(ACCOUNT_ID)" ]; then \
+		echo "Erreur : AWS_ACCOUNT_ID manquant dans .env"; exit 1; \
+	fi
+	@if [ -z "$(ALERT_EMAIL)" ]; then \
+		echo "Avertissement : ALERT_EMAIL non défini — l'abonnement SNS sera créé sans email"; \
+	fi
 
 .PHONY: synth
 synth: ## Générer les templates CloudFormation (validation)
@@ -127,55 +168,74 @@ diff: ## Voir les changements depuis le dernier deploy (toutes régions actives)
 	cdk diff $(STACKS_ALL)
 
 .PHONY: deploy
-deploy: ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Secondary)
-	cdk deploy $(STACKS_ALL) --require-approval never --import-existing-resources
+deploy: _check-env ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Secondary)
+	cdk deploy $(STACKS_ALL) --require-approval never --import-existing-resources || \
+	  { echo ""; echo "Deploy échoué. Vérifier :"; \
+	    echo "  1. make bootstrap-bucket  (bucket CDK absent après un destroy)"; \
+	    echo "  2. .env correctement rempli (IOT_ENDPOINT_*, ACCOUNT_ID...)"; \
+	    echo "  3. pip install -r iac/requirements.txt"; \
+	    exit 1; }
 
 .PHONY: deploy-primary
-deploy-primary: ## Déployer uniquement les stacks Primary
-	cdk deploy $(STACKS_PRIMARY) --require-approval never --import-existing-resources
+deploy-primary: _check-env ## Déployer uniquement les stacks Primary
+	cdk deploy $(STACKS_PRIMARY) --require-approval never --import-existing-resources || \
+	  { echo ""; echo "Deploy échoué. Vérifier :"; \
+	    echo "  1. make bootstrap-bucket  (bucket CDK absent après un destroy)"; \
+	    echo "  2. .env correctement rempli (IOT_ENDPOINT_*, ACCOUNT_ID...)"; \
+	    echo "  3. pip install -r iac/requirements.txt"; \
+	    exit 1; }
 
 .PHONY: deploy-secondary
 deploy-secondary: ## Déployer uniquement les stacks Secondary (MULTI_REGION=true requis)
 	@if [ "$(MULTI_REGION)" != "true" ]; then \
-		echo "❌ MULTI_REGION=false dans .env — secondary désactivé"; exit 1; \
+		echo "MULTI_REGION=false dans .env — secondary désactivé"; exit 1; \
 	fi
-	cdk deploy $(STACKS_SECONDARY) --require-approval never --import-existing-resources
+	cdk deploy $(STACKS_SECONDARY) --require-approval never --import-existing-resources || \
+	  { echo ""; echo "Deploy échoué. Vérifier :"; \
+	    echo "  1. make bootstrap-bucket  (bucket CDK absent après un destroy)"; \
+	    echo "  2. .env correctement rempli (IOT_ENDPOINT_*, ACCOUNT_ID...)"; \
+	    echo "  3. pip install -r iac/requirements.txt"; \
+	    exit 1; }
 
 
 .PHONY: empty-buckets
 empty-buckets: ## Vider les buckets S3 archive + CDK assets (toutes régions actives)
+	@if [ -z "$(FORCE)" ]; then \
+		read -p "Vider les buckets S3 ? Données définitivement perdues (yes pour confirmer) : " _c; \
+		if [ "$$_c" != "yes" ]; then echo "Annulé"; exit 1; fi; \
+	fi
 	@for bucket in $(ARCHIVE_BUCKET) $(if $(filter true,$(MULTI_REGION)),$(ARCHIVE_BUCKET_SECONDARY),); do \
-		echo "🧹 Vidage $$bucket (versions)..."; \
-		aws s3api list-object-versions --bucket $$bucket \
-			--output text --query 'Versions[].[Key,VersionId]' 2>/dev/null | \
-		while read key vid; do \
-			[ -z "$$key" ] || aws s3api delete-object --bucket $$bucket \
-				--key "$$key" --version-id "$$vid" >/dev/null; \
-		done || true; \
-		aws s3api list-object-versions --bucket $$bucket \
-			--output text --query 'DeleteMarkers[].[Key,VersionId]' 2>/dev/null | \
-		while read key vid; do \
-			[ -z "$$key" ] || aws s3api delete-object --bucket $$bucket \
-				--key "$$key" --version-id "$$vid" >/dev/null; \
-		done || true; \
+		if aws s3api head-bucket --bucket $$bucket; then \
+			echo "Vidage $$bucket..."; \
+			aws s3 rm s3://$$bucket --recursive; \
+		else \
+			echo "Bucket $$bucket inexistant, ignoré"; \
+		fi; \
 	done
-	@echo "🧹 Vidage buckets CDK assets..."
+	@echo "Vidage buckets CDK assets..."
 	@for bucket in $(CDK_BUCKET) $(if $(filter true,$(MULTI_REGION)),$(CDK_BUCKET_SECONDARY),); do \
-		aws s3 rm s3://$$bucket --recursive 2>/dev/null || true; \
+		if aws s3api head-bucket --bucket $$bucket; then \
+			aws s3 rm s3://$$bucket --recursive; \
+		else \
+			echo "Bucket $$bucket inexistant, ignoré"; \
+		fi; \
 	done
-	@echo "✅ Buckets vidés"
+	@echo "Buckets vidés"
 
 .PHONY: destroy
-destroy: empty-buckets ## Détruire tous les stacks actifs + supprimer les buckets
+destroy: ## Détruire tous les stacks actifs + supprimer les buckets
+	@$(MAKE) empty-buckets FORCE=1
 	cdk destroy $(STACKS_ALL) --force
-	@echo "🧹 Suppression des buckets résiduels..."
+	@echo "Suppression des buckets résiduels..."
 	@for bucket in \
 		$(ARCHIVE_BUCKET) \
 		$(CDK_BUCKET) \
 		$(if $(filter true,$(MULTI_REGION)),$(ARCHIVE_BUCKET_SECONDARY) $(CDK_BUCKET_SECONDARY),); do \
-		aws s3 rb s3://$$bucket 2>/dev/null || true; \
+		if aws s3api head-bucket --bucket $$bucket; then \
+			aws s3 rb s3://$$bucket; \
+		fi; \
 	done
-	@echo "✅ Destroy complet"
+	@echo "Destroy complet"
 
 # ==============================================================================
 # Certificats & Simulateur MQTT
@@ -221,7 +281,7 @@ test-critical: ## Publier un message CRITICAL (→ SNS email + S3)
 		--payload '{"sensor_id":"S-TEST","metric":"CO2","value":1500,"unit":"ppm","status":"CRITICAL","region":"$(REGION)","quartier":"centre","timestamp":1717256400}' \
 		--cli-binary-format raw-in-base64-out \
 		--region $(REGION)
-	@echo "✅ CRITICAL publié sur metropole/centre/S-TEST/telemetry ($(REGION))"
+	@echo "CRITICAL publié sur metropole/centre/S-TEST/telemetry ($(REGION))"
 
 .PHONY: test-normal
 test-normal: ## Publier un message NORMAL (→ S3 seulement, pas d'alerte)
@@ -230,7 +290,7 @@ test-normal: ## Publier un message NORMAL (→ S3 seulement, pas d'alerte)
 		--payload '{"sensor_id":"S-TEST","metric":"CO2","value":500,"unit":"ppm","status":"NORMAL","region":"$(REGION)","quartier":"nord","timestamp":1717256400}' \
 		--cli-binary-format raw-in-base64-out \
 		--region $(REGION)
-	@echo "✅ NORMAL publié sur metropole/nord/S-TEST/telemetry ($(REGION))"
+	@echo "NORMAL publié sur metropole/nord/S-TEST/telemetry ($(REGION))"
 
 .PHONY: sns-test
 sns-test: ## Publier un test direct sur SNS (skip IoT, vérifie email)
@@ -276,7 +336,7 @@ metrics-rules: ## Voir TopicMatch/Success/Failure des Topic Rules (10 dernières
 				--start-time $$(date -u -d '10 minutes ago' '+%Y-%m-%dT%H:%M:%S') \
 				--end-time $$(date -u '+%Y-%m-%dT%H:%M:%S') \
 				--period 600 --statistics Sum --region $(REGION) \
-				--query 'Datapoints[0].Sum' --output text 2>/dev/null || echo "0"; \
+				--query 'Datapoints[0].Sum' --output text || echo "0"; \
 		done; \
 	done
 
@@ -305,5 +365,5 @@ metrics-firehose: ## Voir les records reçus par Firehose (10 dernières min)
 .PHONY: clean
 clean: ## Nettoyer les artefacts locaux (cdk.out, __pycache__)
 	rm -rf cdk.out
-	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-	@echo "✅ Artefacts locaux nettoyés"
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	@echo "Artefacts locaux nettoyés"
