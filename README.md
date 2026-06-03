@@ -1,4 +1,5 @@
 # EcoSense
+![logo ecosens](docs/img/Ecosenslogo.png)
 
 Pipeline de télémétrie IoT multi-région sur AWS. Les capteurs publient des mesures environnementales via MQTT/mTLS vers IoT Core ; les Topic Rules routent le flux en deux chemins : alertes CRITICAL vers une chaîne d'agrégation par quartier avec backoff exponentiel, et 100% du flux vers Kinesis Firehose pour archivage dans S3 et interrogation via Athena. Deux régions indépendantes (`us-east-1` / `us-east-2`) avec failover côté client.
 
@@ -6,42 +7,7 @@ Le `Makefile` est l'interface principale. Toutes les commandes s'exécutent depu
 
 ## Architecture
 
-```mermaid
-flowchart TD
-     SIM[Simulateur MQTT] -->|metropole/quartier/sensor/telemetry| IOT[IoT Core]
-
-     IOT -->|WHERE status = CRITICAL\ntopic2 AS quartier| SQS[SQS AlertsQueue]
-     IOT -->|ALL messages| FH[Kinesis Firehose]
-     SQS -->|messages échoués x3| DLQ[SQS DLQ]
-
-     SQS --> INGEST[Lambda Ingest]
-
-     INGEST -->|stocke alerte| PA[(DynamoDB\nPendingAlerts)]
-     INGEST -->|write atomique\nConditionExpression| QS[(DynamoDB\nQuartierState)]
-     INGEST -->|premier mail\npar quartier| SNS[SNS Topic]
-     INGEST -->|at t+Ns| EB[EventBridge Scheduler]
-
-     EB -->|quartier| FLUSH[Lambda Flush]
-     EB -->|échec invocation| SDLQ[SQS FlushSchedulerDLQ]
-     FLUSH -->|lit toutes alertes| PA
-     FLUSH -->|lit état| QS
-
-     FLUSH -->|alertes présentes\nmail feed NOUVELLES+HISTORIQUE| SNS
-     FLUSH -->|double interval\nx2 cap 12h| EB
-     FLUSH -->|aucune alerte\nreset cycle| QS
-
-     SNS -->|email thread par quartier| EMAIL[Destinataire]
-
-     FH -->|partitionné YYYY-MM-DD-HH\nGZIP| S3[S3 Bucket]
-     S3 --> ATH[Athena / Glue]
-
-     style DLQ fill:#ff6b6b,color:#fff
-     style SDLQ fill:#ff6b6b,color:#fff
-     style FLUSH fill:#4ecdc4,color:#fff
-     style INGEST fill:#4ecdc4,color:#fff
-     style SNS fill:#f9ca24,color:#000
-     style EB fill:#6c5ce7,color:#fff
-```
+![ArchiEcosens](docs/img/archiecosens.png)
 
 ## Prérequis
 
