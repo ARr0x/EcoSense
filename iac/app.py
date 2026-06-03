@@ -51,6 +51,9 @@ S3_BUCKET_PREFIX = os.environ.get("S3_BUCKET_PREFIX", "ecosense-archives")
 FIREHOSE_BUFFER_SEC = int(os.environ.get("FIREHOSE_BUFFER_SECONDS", "60"))
 FIREHOSE_BUFFER_MB = int(os.environ.get("FIREHOSE_BUFFER_MB", "5"))
 
+# Intervalle initial du backoff d'alertes (300 = 5 min prod, 20 = démo)
+FIRST_INTERVAL_SEC = int(os.environ.get("FIRST_INTERVAL_SEC", "300"))
+
 
 # =============================================================================
 # App CDK
@@ -69,6 +72,7 @@ def create_stack(region: str, label: str) -> EcoSenseStack:
         bucket_name=f"{S3_BUCKET_PREFIX}-{AWS_ACCOUNT_ID}-{region}",
         firehose_buffer_seconds=FIREHOSE_BUFFER_SEC,
         firehose_buffer_mb=FIREHOSE_BUFFER_MB,
+        first_interval_sec=FIRST_INTERVAL_SEC,
         env=cdk.Environment(account=AWS_ACCOUNT_ID, region=region),
         synthesizer=cdk.CliCredentialsStackSynthesizer(
             file_assets_bucket_name=assets_bucket,
