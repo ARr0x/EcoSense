@@ -198,7 +198,7 @@ FROM 'sensors/+/metrics'
 - Charge estimée : faible (peu de capteurs = peu d'alertes critiques)
 
 **Scaling SNS :**
-- Pas de besoin actuel (volume d'alertes limité)
+- ✅ Pas de besoin actuel (volume d'alertes limité)
 - Volume SNS : typiquement < 100 messages/jour
 - Coût SNS : ~0.50 USD/mois (minimal)
 
@@ -233,7 +233,7 @@ FROM 'sensors/+/metrics'
 
 #### Retry & Error Handling
 - **Retry automatique** : 0 à 3600s exponential backoff
-- **Destination alternative (DLQ)** : À implémenter
+- **Destination alternative (DLQ)** : ✅ À implémenter
   - Bucket S3 `ecosense-firehose-dlq/` pour messages rejetés
   - CloudWatch alarm si > 100 messages/min en DLQ
   - Investigation manuelle requise
@@ -256,7 +256,7 @@ FROM 'sensors/+/metrics'
   Jour 30+    → Suppression automatique
   ```
 
-#### S3 Cross-Region Replication (CRR) ACTIVÉ
+#### S3 Cross-Region Replication (CRR) ✅ ACTIVÉ
 - **Source** : Bucket Region 1 (Primary)
 - **Destination** : Bucket us-east-2 (Replica)
 - **Réplication** : Automatique, temps quasi-réel (~15 sec)
@@ -264,10 +264,10 @@ FROM 'sensors/+/metrics'
 - **Delete marker replication** : Activé (suppressions aussi répliquées)
 
 **Avantages CRR :**
-- RPO = ~15 secondes (données synchronisées)
-- Disaster recovery : récupération instant en cas panne Region 1
-- Analytics distribuées possibles (Athena lit depuis Region 2)
-- Coût acceptable : ~200 USD/mois supplémentaires
+- ✅ RPO = ~15 secondes (données synchronisées)
+- ✅ Disaster recovery : récupération instant en cas panne Region 1
+- ✅ Analytics distribuées possibles (Athena lit depuis Region 2)
+- ✅ Coût acceptable : ~200 USD/mois supplémentaires
 
 #### Structure de partitioning (par timestamp)
 ```
@@ -398,10 +398,10 @@ Nouveau flux (post-bascule) continue dans us-east-2
 **RPO** : ~15 secondes (S3 CRR synchronise quasi-temps réel)  
 
 **Architecture notes :**
-- S3 CRR activé : Region 1 → us-east-2 (réplication automatique)
-- Données us-east-2 étaient déjà synchronisées (RPO 15s)
-- Perte maximale : 15-20 sec de données (le temps du dernier flush Firehose)
-- Pas besoin d'intervention manuelle : basculement complètement automatique
+- ✅ S3 CRR activé : Region 1 → us-east-2 (réplication automatique)
+- ✅ Données us-east-2 étaient déjà synchronisées (RPO 15s)
+- ✅ Perte maximale : 15-20 sec de données (le temps du dernier flush Firehose)
+- ✅ Pas besoin d'intervention manuelle : basculement complètement automatique
 
 **Avantage vs sans CRR :**
 - Sans CRR : RPO = 2-3 min, intervention manuelle possible
@@ -453,10 +453,10 @@ SHARED (analytics, 1 instance):
 ────────────────────────────────────────────
 TOTAL MENSUEL                                 ≈ 1,780 USD
 
-S3 avec CRR (haute dispo) : RPO = 15 sec
-Pas de Glacier (rétention 30j seulement)
-Data transfer inter-région : ~50-100 USD/mois (estimé, non inclus)
-Peu d'alertes SNS → coût minimal
+✅ S3 avec CRR (haute dispo) : RPO = 15 sec
+✅ Pas de Glacier (rétention 30j seulement)
+✅ Data transfer inter-région : ~50-100 USD/mois (estimé, non inclus)
+✅ Peu d'alertes SNS → coût minimal
 ```
 
 ### 4. Monitoring & Alerting
@@ -782,13 +782,13 @@ Renforcer le principe d'immutabilité déjà mentionné dans l'architecture :
 
 | Domaine | Contrôle | Statut recommandé |
 |---------|----------|--------------------|
-| **Authentification IoT** | Certificats X.509 mutuels (mTLS) | En place |
-| **Autorisation IoT** | Policy par capteur, topic restreint | À implémenter |
-| **Chiffrement transit** | TLS 1.2+ sur tous les segments | En place |
+| **Authentification IoT** | Certificats X.509 mutuels (mTLS) | ✅ En place |
+| **Autorisation IoT** | Policy par capteur, topic restreint | ✅ À implémenter |
+| **Chiffrement transit** | TLS 1.2+ sur tous les segments | ✅ En place |
 | **Chiffrement repos** | SSE-KMS sur S3, Firehose, SNS | ⚠️ À implémenter (KMS dédié) |
 | **Moindre privilège IAM** | Rôles dédiés par service, pas de wildcard | ⚠️ À implémenter |
 | **Isolation réseau** | VPC Endpoints pour services internes | 🔴 À décider (voir §3.1) |
-| **Blocage accès public S3** | S3 Block Public Access | À activer |
+| **Blocage accès public S3** | S3 Block Public Access | ✅ À activer |
 | **Audit CloudTrail** | Logs toutes régions, bucket immuable | ⚠️ À implémenter |
 | **Rotation certificats** | Renouvellement annuel + révocation | ⚠️ Processus à définir |
 | **MFA humains** | MFA obligatoire sur tous les comptes IAM | ⚠️ À enforcer |
@@ -796,6 +796,6 @@ Renforcer le principe d'immutabilité déjà mentionné dans l'architecture :
 | **S3 Object Lock** | Immutabilité données brutes 30 jours | 🔴 À décider |
 | **Séparation des rôles** | Opérateurs / Data Scientists / Admins | ⚠️ À formaliser |
 
-**Légende :** En place / ⚠️ À implémenter / 🔴 À décider ou optionnel
+**Légende :** ✅ En place / ⚠️ À implémenter / 🔴 À décider ou optionnel
 
 > Les décisions prises et la roadmap vers la production sont documentées dans [limitations-et-ameliorations.md](limitations-et-ameliorations.md).
