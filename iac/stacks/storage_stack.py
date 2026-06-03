@@ -125,8 +125,7 @@ class StorageStack(Construct):
                     "projection.hour.range": "0,23",
                     "projection.hour.digits": "2",
                     "storage.location.template": (
-                        f"s3://{bucket_name}/"
-                        "${year}-${month}-${day}-${hour}"
+                        f"s3://{bucket_name}/${{year}}-${{month}}-${{day}}-${{hour}}"
                     ),
                 },
                 partition_keys=[
@@ -168,6 +167,7 @@ class StorageStack(Construct):
             "AthenaWorkgroup",
             name=f"ecosense-{stack.region}",
             description="EcoSense Athena workgroup",
+            recursive_delete_option=True,
             work_group_configuration=athena.CfnWorkGroup.WorkGroupConfigurationProperty(
                 result_configuration=athena.CfnWorkGroup.ResultConfigurationProperty(
                     output_location=f"s3://{bucket_name}/athena-results/",
@@ -218,6 +218,6 @@ class StorageStack(Construct):
         cdk.CfnOutput(
             self,
             "AthenaQueryCritical",
-            value="SELECT * FROM \"ecosense_db\".\"telemetry\" WHERE status='CRITICAL' LIMIT 50;",
+            value='SELECT * FROM "ecosense_db"."telemetry" WHERE status=\'CRITICAL\' LIMIT 50;',
             description="Requête Athena — alertes CRITICAL uniquement",
         )
