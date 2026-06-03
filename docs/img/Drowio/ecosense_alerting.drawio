@@ -1,0 +1,216 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="QIBw1FXw-kbEWrR06_Lk" name="Page-1">
+    <mxGraphModel dx="2175" dy="2624" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" value="EcoSense — Pipeline Alertes CRITICAL" vertex="1">
+          <mxGeometry height="40" width="1000" x="296" y="-150" as="geometry" />
+        </mxCell>
+        <mxCell id="sim" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#067F68;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.iot_greengrass;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="80" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="sim_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="Simulateur MQTT&#xa;(mTLS / X.509)" vertex="1">
+          <mxGeometry height="30" width="130" x="54" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="aws_cluster" parent="1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#232F3E;fillColor=#ffffff;verticalAlign=top;align=center;spacingTop=25;fontStyle=1;fontSize=13;dashed=0;" value="AWS · us-east-1 Primary / us-east-2 Failover" vertex="1">
+          <mxGeometry height="1150" width="1330" x="230" y="-100" as="geometry" />
+        </mxCell>
+        <mxCell id="iot" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#067F68;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.iot_core;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="340" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="iot_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="IoT Core&#xa;Topic Rules SQL" vertex="1">
+          <mxGeometry height="30" width="130" x="314" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="alert_cluster" parent="1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security;strokeColor=#DD344C;fillColor=#FFF0F0;verticalAlign=top;align=center;spacingTop=25;fontStyle=1;fontSize=12;dashed=0;" value="① Chemin Alertes  [WHERE status = CRITICAL]" vertex="1">
+          <mxGeometry height="1030" width="1000" x="490" y="-40" as="geometry" />
+        </mxCell>
+        <mxCell id="sqs" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sqs;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="620" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="sqs_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="AlertsQueue&#xa;batch=10 · window=5s" vertex="1">
+          <mxGeometry height="30" width="130" x="594" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="dlq_msg" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sqs;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="620" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="dlq_msg_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="DLQ Messages&#xa;×3 échecs · 14j" vertex="1">
+          <mxGeometry height="30" width="130" x="600" y="334" as="geometry" />
+        </mxCell>
+        <mxCell id="agg_cluster" parent="1" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_generic;strokeColor=#147EBA;fillColor=#E6F2F8;verticalAlign=top;align=center;spacingTop=25;fontStyle=1;fontSize=11;dashed=1;" value="Agrégateur par quartier — backoff exponentiel" vertex="1">
+          <mxGeometry height="720" width="630" x="760" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="NkB3brCzVWeN5-ppDLT4-1" edge="1" parent="1" source="lambda_ing" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B0001E;strokeWidth=2;" target="sns">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lambda_ing" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#ED7100;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="820" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="lambda_ing_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="Lambda Ingest&#xa;timeout 60s" vertex="1">
+          <mxGeometry height="30" width="130" x="794" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="pending" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#C7131F;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="820" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="pending_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="PendingAlerts&#xa;TTL 24h" vertex="1">
+          <mxGeometry height="30" width="130" x="794" y="765" as="geometry" />
+        </mxCell>
+        <mxCell id="qstate" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#C7131F;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="1000" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="qstate_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="QuartierState&#xa;last_sent_at · interval" vertex="1">
+          <mxGeometry height="30" width="130" x="974" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="eb" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.eventbridge;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="1000" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="EventBridge Scheduler&#xa;T+5min → ×2 → cap 12h" vertex="1">
+          <mxGeometry height="30" width="130" x="974" y="328" as="geometry" />
+        </mxCell>
+        <mxCell id="lambda_flush" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#ED7100;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="1180" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="lambda_flush_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="Lambda Flush&#xa;timeout 60s" vertex="1">
+          <mxGeometry height="30" width="130" x="1154" y="334" as="geometry" />
+        </mxCell>
+        <mxCell id="dlq_sched" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sqs;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="1296" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="dlq_sched_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="DLQ Scheduler&#xa;échec invocation · 14j" vertex="1">
+          <mxGeometry height="30" width="130" x="1270" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="sns" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#E7157B;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sns;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="1360" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="sns_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="SNS Topic" vertex="1">
+          <mxGeometry height="30" width="130" x="1334" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="user" parent="1" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;strokeColor=none;fillColor=#232F3E;labelBackgroundColor=#ffffff;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.user;" value="" vertex="1">
+          <mxGeometry height="78" width="78" x="1606" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="user_label" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=top;fontSize=11;" value="Abonnés&amp;nbsp; Email" vertex="1">
+          <mxGeometry height="30" width="130" x="1580" y="545" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sim_iot" edge="1" parent="1" source="sim" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#067F68;strokeWidth=2;fontColor=#067F68;fontStyle=1;" target="iot" value="MQTT mTLS">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_iot_sqs" edge="1" parent="1" source="iot" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#000000;strokeWidth=3;fontColor=#B0001E;fontStyle=1;" target="sqs" value="CRITICAL">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_sqs_dlqmsg" edge="1" parent="1" source="sqs" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=0;exitDx=0;exitDy=0;strokeColor=#808080;strokeWidth=2;dashed=1;fontColor=#808080;fontSize=11;edgeStyle=orthogonalEdgeStyle;" target="dlq_msg" value="×3 échecs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="659" y="420" />
+              <mxPoint x="580" y="420" />
+              <mxPoint x="580" y="289" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_sqs_ing" edge="1" parent="1" source="sqs" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#000000;strokeWidth=3;" target="lambda_ing" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ing_qs" edge="1" parent="1" source="lambda_ing" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#B0001E;strokeWidth=2;fontColor=#B0001E;fontStyle=1;fontSize=11;" target="qstate" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ing_eb" edge="1" parent="1" source="lambda_ing" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#B0001E;strokeWidth=2;fontColor=#B0001E;fontStyle=1;fontSize=11;edgeStyle=orthogonalEdgeStyle;" target="eb" value="crée scheduler&#xa;at(T+FIRST_INTERVAL)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_ing_pa" edge="1" parent="1" source="lambda_ing" style="rounded=0;orthogonalLoop=1;jettySize=auto;strokeColor=#D25B00;strokeWidth=2;fontColor=#D25B00;fontStyle=1;fontSize=11;edgeStyle=orthogonalEdgeStyle;" target="pending" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="790" y="530" />
+              <mxPoint x="790" y="719" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_eb_flush" edge="1" parent="1" source="eb" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#7B4FAB;strokeWidth=2;" target="lambda_flush" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_eb_dlqsched" edge="1" parent="1" source="eb" style="rounded=0;orthogonalLoop=1;jettySize=auto;strokeColor=#808080;strokeWidth=2;dashed=1;fontColor=#808080;fontSize=11;edgeStyle=orthogonalEdgeStyle;" target="dlq_sched" value="échec invocation">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="920" y="270" />
+              <mxPoint x="920" y="70" />
+            </Array>
+            <mxPoint x="1180" y="210" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_flush_pa" edge="1" parent="1" source="lambda_flush" style="rounded=0;orthogonalLoop=1;jettySize=auto;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#7B4FAB;strokeWidth=2;fontColor=#7B4FAB;fontSize=11;edgeStyle=orthogonalEdgeStyle;" target="pending" value="lit toutes&#xa;les alertes">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1290" y="320" />
+              <mxPoint x="1290" y="719" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_flush_qs" edge="1" parent="1" source="lambda_flush" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0;exitY=0.7;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#7B4FAB;strokeWidth=2;fontColor=#7B4FAB;fontSize=11;edgeStyle=orthogonalEdgeStyle;" target="qstate" value="met à jour&#xa;last_sent_at">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1130" y="305" />
+              <mxPoint x="1130" y="440" />
+              <mxPoint x="1039" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_flush_sns" edge="1" parent="1" source="lambda_flush" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#7B4FAB;strokeWidth=3;fontColor=#7B4FAB;fontStyle=1;fontSize=11;edgeStyle=orthogonalEdgeStyle;" value="feed NOUVELLES&#xa;+ HISTORIQUE">
+          <mxGeometry relative="1" x="0.1025" y="1" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1380" y="289" />
+              <mxPoint x="1380" y="460" />
+            </Array>
+            <mxPoint x="1380" y="460" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_flush_eb" edge="1" parent="1" source="lambda_flush" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=0;exitDx=0;exitDy=0;strokeColor=#7B4FAB;strokeWidth=2;dashed=1;fontColor=#7B4FAB;fontSize=11;edgeStyle=orthogonalEdgeStyle;" target="eb" value="reschedule ×2 interval">
+          <mxGeometry relative="1" x="0.0393" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1219" y="220" />
+              <mxPoint x="1050" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_sns_user" edge="1" parent="1" source="sns" style="rounded=0;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#232F3E;strokeWidth=2;" target="user" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;fontColor=#333333;" value="" vertex="1">
+          <mxGeometry height="210" width="320" x="80" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1;fontSize=13;" value="Légende" vertex="1">
+          <mxGeometry height="25" width="100" x="100" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#B0001E;strokeWidth=3;" value="" vertex="1">
+          <mxGeometry height="10" width="50" x="100" y="825" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1t" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Première alerte (mail immédiat + scheduler)" vertex="1">
+          <mxGeometry height="25" width="220" x="160" y="818" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#D25B00;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="10" width="50" x="100" y="860" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2t" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Alertes suivantes (buffer PendingAlerts)" vertex="1">
+          <mxGeometry height="25" width="220" x="160" y="853" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#7B4FAB;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="10" width="50" x="100" y="895" as="geometry" />
+        </mxCell>
+        <mxCell id="leg3t" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Cycle Flush (reschedule + feed historique)" vertex="1">
+          <mxGeometry height="25" width="220" x="160" y="888" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#808080;strokeWidth=2;dashed=1;" value="" vertex="1">
+          <mxGeometry height="10" width="50" x="100" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="leg4t" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Chemins d&#39;erreur / DLQ" vertex="1">
+          <mxGeometry height="25" width="220" x="160" y="923" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#067F68;strokeWidth=2;" value="" vertex="1">
+          <mxGeometry height="10" width="50" x="100" y="963" as="geometry" />
+        </mxCell>
+        <mxCell id="leg5t" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=11;" value="Connexion MQTT mTLS" vertex="1">
+          <mxGeometry height="25" width="220" x="160" y="956" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
