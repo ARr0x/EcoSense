@@ -96,7 +96,7 @@ def create_certificate_and_keys(iot_client) -> dict:
     """Créer un certificat X.509 et sa paire de clés."""
     try:
         log.info("Création du certificat X.509...")
-        response = iot_client.create_keys_and_certificate(SetAsActive=True)
+        response = iot_client.create_keys_and_certificate(setAsActive=True)
         log.info(f"✓ Certificat créé : {response['certificateId'][:16]}...")
 
         return {
@@ -125,7 +125,7 @@ def create_iot_policy(iot_client, region: str, client_id: str) -> str:
             {
                 "Effect": "Allow",
                 "Action": "iot:Publish",
-                "Resource": f"arn:aws:iot:{region}:*:topicfilter/metropole/*",
+                "Resource": f"arn:aws:iot:{region}:*:topic/metropole/*",
             },
             {
                 "Effect": "Allow",
