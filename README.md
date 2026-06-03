@@ -22,19 +22,21 @@ flowchart TD
      INGEST -->|at t+Ns| EB[EventBridge Scheduler]
 
      EB -->|quartier| FLUSH[Lambda Flush]
-     FLUSH -->|lit alertes depuis\nlast_sent_at| PA
+     EB -->|échec invocation| SDLQ[SQS FlushSchedulerDLQ]
+     FLUSH -->|lit toutes alertes| PA
      FLUSH -->|lit état| QS
 
-     FLUSH -->|alertes présentes\nmail groupé| SNS
+     FLUSH -->|alertes présentes\nmail feed NOUVELLES+HISTORIQUE| SNS
      FLUSH -->|double interval\nx2 cap 12h| EB
      FLUSH -->|aucune alerte\nreset cycle| QS
 
-     SNS -->|email| EMAIL[Destinataire]
+     SNS -->|email thread par quartier| EMAIL[Destinataire]
 
-     FH -->|partitionné YYYY-MM-DD-HH| S3[S3 Bucket]
+     FH -->|partitionné YYYY-MM-DD-HH\nGZIP| S3[S3 Bucket]
      S3 --> ATH[Athena / Glue]
 
      style DLQ fill:#ff6b6b,color:#fff
+     style SDLQ fill:#ff6b6b,color:#fff
      style FLUSH fill:#4ecdc4,color:#fff
      style INGEST fill:#4ecdc4,color:#fff
      style SNS fill:#f9ca24,color:#000
@@ -50,23 +52,30 @@ flowchart TD
 
 ## Quick start
 
-Copier `.env.example` vers `.env` et renseigner `AWS_ACCOUNT_ID` et `ALERT_EMAIL` avant de commencer.
+Copier `.env.example` vers `.env` et renseigner au minimum `AWS_ACCOUNT_ID` et `ALERT_EMAIL` avant de commencer.
+
+```bash
+cp .env.example .env
+# Éditer .env : AWS_ACCOUNT_ID, ALERT_EMAIL
+make bootstrap        # venv + dépendances + bucket CDK
+make deploy           # déployer les stacks
+make iot-endpoint     # copier les endpoints IoT dans .env
+make certs            # provisionner les certificats X.509
+make check            # tester la connexion MQTT mTLS
+make run              # lancer le simulateur
+```
 
 | Cible | Description |
 |---|---|
-| `make install` | Crée le venv et installe les dépendances Python |
-| `make deploy` | Déploie les stacks CDK (Primary + Secondary si `MULTI_REGION=true`) |
+| `make bootstrap` | Premier démarrage : venv + dépendances + bucket CDK |
+| `make deploy` | Déploie les stacks CDK (Primary seul par défaut, `MULTI_REGION=true` pour les deux) |
 | `make iot-endpoint` | Affiche les endpoints IoT à copier dans `.env` |
 | `make certs` | Provisionne les certificats X.509 pour le simulateur |
 | `make check` | Teste la connexion MQTT mTLS (exit 0 = OK) |
 | `make run` | Lance le simulateur en mode publication |
+| `make destroy` | Vide les buckets et détruit tous les stacks |
 
-Si `make deploy` échoue avec une erreur d'accès ou de bucket CDK introuvable, recréer les buckets avant de relancer :
-
-```bash
-make bootstrap-bucket
-make deploy
-```
+Si `make deploy` échoue, il affiche les vérifications à faire (bucket CDK, `.env`, dépendances Python).
 
 Consulter `make help` pour la liste complète des cibles disponibles.
 

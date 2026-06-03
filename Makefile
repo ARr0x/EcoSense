@@ -16,10 +16,9 @@ export
 export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 # Variables (override possible : make deploy REGION=us-east-2)
-REGION            ?= $(CDK_DEFAULT_REGION)
-REGION            ?= us-east-1
+REGION            ?= $(if $(CDK_DEFAULT_REGION),$(CDK_DEFAULT_REGION),us-east-1)
 SECONDARY_REGION  ?= us-east-2
-MULTI_REGION      ?= true
+MULTI_REGION      ?= false
 ACCOUNT_ID        ?= $(AWS_ACCOUNT_ID)
 
 CDK_BUCKET                := ecosense-cdk-$(ACCOUNT_ID)-$(REGION)
@@ -90,6 +89,16 @@ venv: ## Créer le venv (.venv) — uv si dispo, sinon python3 -m venv
 		exit 1; \
 	fi
 
+.PHONY: bootstrap
+bootstrap: install bootstrap-bucket ## Premier démarrage : venv + dépendances + bucket CDK
+	@echo ""
+	@echo "Bootstrap terminé. Prochaines étapes :"
+	@echo "  1. make deploy"
+	@echo "  2. Remplir IOT_ENDPOINT_* dans .env (après deploy)"
+	@echo "  3. python simulator/provision_certs.py us-east-1"
+	@echo "  4. python simulator/simulator_mqtt.py --check"
+	@echo ""
+
 .PHONY: install
 install: venv ## Installer les dépendances Python (CDK + simulateur)
 	@if [ -n "$(UV)" ]; then \
@@ -141,6 +150,15 @@ _reset-bucket:
 # CDK — Déploiement
 # ==============================================================================
 
+.PHONY: _check-env
+_check-env:
+	@if [ -z "$(ACCOUNT_ID)" ]; then \
+		echo "Erreur : AWS_ACCOUNT_ID manquant dans .env"; exit 1; \
+	fi
+	@if [ -z "$(ALERT_EMAIL)" ]; then \
+		echo "Avertissement : ALERT_EMAIL non défini — l'abonnement SNS sera créé sans email"; \
+	fi
+
 .PHONY: synth
 synth: ## Générer les templates CloudFormation (validation)
 	cdk synth
@@ -150,7 +168,7 @@ diff: ## Voir les changements depuis le dernier deploy (toutes régions actives)
 	cdk diff $(STACKS_ALL)
 
 .PHONY: deploy
-deploy: ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Secondary)
+deploy: _check-env ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Secondary)
 	cdk deploy $(STACKS_ALL) --require-approval never --import-existing-resources || \
 	  { echo ""; echo "Deploy échoué. Vérifier :"; \
 	    echo "  1. make bootstrap-bucket  (bucket CDK absent après un destroy)"; \
@@ -159,7 +177,7 @@ deploy: ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Seco
 	    exit 1; }
 
 .PHONY: deploy-primary
-deploy-primary: ## Déployer uniquement les stacks Primary
+deploy-primary: _check-env ## Déployer uniquement les stacks Primary
 	cdk deploy $(STACKS_PRIMARY) --require-approval never --import-existing-resources || \
 	  { echo ""; echo "Deploy échoué. Vérifier :"; \
 	    echo "  1. make bootstrap-bucket  (bucket CDK absent après un destroy)"; \
@@ -182,6 +200,10 @@ deploy-secondary: ## Déployer uniquement les stacks Secondary (MULTI_REGION=tru
 
 .PHONY: empty-buckets
 empty-buckets: ## Vider les buckets S3 archive + CDK assets (toutes régions actives)
+	@if [ -z "$(FORCE)" ]; then \
+		read -p "Vider les buckets S3 ? Données définitivement perdues (yes pour confirmer) : " _c; \
+		if [ "$$_c" != "yes" ]; then echo "Annulé"; exit 1; fi; \
+	fi
 	@for bucket in $(ARCHIVE_BUCKET) $(if $(filter true,$(MULTI_REGION)),$(ARCHIVE_BUCKET_SECONDARY),); do \
 		if aws s3api head-bucket --bucket $$bucket; then \
 			echo "Vidage $$bucket..."; \
@@ -201,7 +223,8 @@ empty-buckets: ## Vider les buckets S3 archive + CDK assets (toutes régions act
 	@echo "Buckets vidés"
 
 .PHONY: destroy
-destroy: empty-buckets ## Détruire tous les stacks actifs + supprimer les buckets
+destroy: ## Détruire tous les stacks actifs + supprimer les buckets
+	@$(MAKE) empty-buckets FORCE=1
 	cdk destroy $(STACKS_ALL) --force
 	@echo "Suppression des buckets résiduels..."
 	@for bucket in \

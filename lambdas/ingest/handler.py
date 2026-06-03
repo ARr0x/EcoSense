@@ -31,6 +31,7 @@ ALERTS_TABLE = os.environ["ALERTS_TABLE"]
 SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 LAMBDA_FLUSH_ARN = os.environ["LAMBDA_FLUSH_ARN"]
 SCHEDULER_ROLE_ARN = os.environ["SCHEDULER_ROLE_ARN"]
+SCHEDULER_DLQ_ARN = os.environ.get("SCHEDULER_DLQ_ARN", "")
 FIRST_INTERVAL_SEC = int(os.environ.get("FIRST_INTERVAL_SEC", "300"))
 
 
@@ -38,22 +39,36 @@ def handler(event, context):
     state_table = dynamodb.Table(STATE_TABLE)
     alerts_table = dynamodb.Table(ALERTS_TABLE)
 
+    failed_ids = []
     for record in event["Records"]:
         try:
             _traiter_alerte(record, state_table, alerts_table)
         except Exception:
             logger.exception("Erreur traitement alerte : %s", record.get("messageId"))
-            raise
+            failed_ids.append(record.get("messageId"))
+
+    if failed_ids:
+        logger.error("Messages en erreur : %s", failed_ids)
+        if len(failed_ids) == len(event["Records"]):
+            raise RuntimeError("Tous les messages du batch ont échoué")
 
 
 def _traiter_alerte(record, state_table, alerts_table):
-    body = json.loads(record["body"])
+    try:
+        body = json.loads(record["body"])
+    except (json.JSONDecodeError, KeyError) as e:
+        logger.error("Message invalide (messageId=%s) : %s", record.get("messageId"), e)
+        return
 
     if body.get("status") != "CRITICAL":
         logger.warning("Message non-CRITICAL ignoré (status=%s)", body.get("status"))
         return
 
-    quartier = body.get("quartier", "inconnu")
+    quartier = body.get("quartier")
+    if not quartier:
+        logger.error("Champ 'quartier' manquant, message ignoré : %s", body)
+        return
+
     now = datetime.now(timezone.utc)
     ts = now.isoformat()
 
@@ -78,7 +93,7 @@ def _traiter_alerte(record, state_table, alerts_table):
         )
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-            logger.info("Quartier %s déjà en alerte, alerte uniquement buffurisée", quartier)
+            logger.info("Quartier %s déjà en alerte, alerte uniquement bufférisée", quartier)
             return
         raise
 
@@ -122,20 +137,33 @@ def _envoyer_mail_immediat(quartier: str, payload: dict, now: datetime):
 
 
 def _creer_schedule(quartier: str, fire_at: datetime) -> str:
-    schedule_name = f"ecosense-flush-{quartier}-{int(fire_at.timestamp())}"
+    # Précision milliseconde pour éviter les collisions si deux Lambdas tournent
+    # dans la même seconde sur le même quartier
+    schedule_name = f"ecosense-flush-{quartier}-{int(fire_at.timestamp() * 1000)}"
     expr = f"at({fire_at.strftime('%Y-%m-%dT%H:%M:%S')})"
 
-    scheduler_client.create_schedule(
-        Name=schedule_name,
-        ScheduleExpression=expr,
-        ScheduleExpressionTimezone="UTC",
-        FlexibleTimeWindow={"Mode": "OFF"},
-        Target={
-            "Arn": LAMBDA_FLUSH_ARN,
-            "RoleArn": SCHEDULER_ROLE_ARN,
-            "Input": json.dumps({"quartier": quartier}),
-        },
-        ActionAfterCompletion="DELETE",
-    )
+    target = {
+        "Arn": LAMBDA_FLUSH_ARN,
+        "RoleArn": SCHEDULER_ROLE_ARN,
+        "Input": json.dumps({"quartier": quartier}),
+    }
+    if SCHEDULER_DLQ_ARN:
+        target["DeadLetterConfig"] = {"Arn": SCHEDULER_DLQ_ARN}
+
+    try:
+        scheduler_client.create_schedule(
+            Name=schedule_name,
+            ScheduleExpression=expr,
+            ScheduleExpressionTimezone="UTC",
+            FlexibleTimeWindow={"Mode": "OFF"},
+            Target=target,
+            ActionAfterCompletion="DELETE",
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConflictException":
+            logger.info("Schedule %s déjà existant (collision race condition), réutilisé", schedule_name)
+        else:
+            raise
+
     logger.info("Schedule créé : %s à %s", schedule_name, expr)
     return schedule_name

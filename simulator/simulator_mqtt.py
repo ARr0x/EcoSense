@@ -67,6 +67,20 @@ class Config:
 # =============================================================================
 
 
+def _validated_rate(value: float) -> float:
+    if not 0.0 <= value <= 1.0:
+        log.error("CRITICAL_RATE doit être entre 0.0 et 1.0 (valeur reçue : %s)", value)
+        sys.exit(1)
+    return value
+
+
+def _validated_sensor_count(value: int) -> int:
+    if not 1 <= value <= 10000:
+        log.error("SENSOR_COUNT doit être entre 1 et 10000 (valeur reçue : %s)", value)
+        sys.exit(1)
+    return value
+
+
 def get_repo_root() -> Path:
     env_path = find_dotenv(usecwd=True)
     return Path(env_path).parent if env_path else Path.cwd()
@@ -94,10 +108,10 @@ def load_config(args: argparse.Namespace) -> Config:
         primary_region=os.getenv("CDK_DEFAULT_REGION", "us-east-1"),
         secondary_region=os.getenv("SECONDARY_REGION", "us-east-2"),
         client_id=os.getenv("MQTT_CLIENT_ID", "ecosense-simulator"),
-        sensor_count=args.sensor_count or int(os.getenv("SENSOR_COUNT", "500")),
+        sensor_count=_validated_sensor_count(args.sensor_count or int(os.getenv("SENSOR_COUNT", "500"))),
         burst_size=args.burst_size or int(os.getenv("BURST_SIZE", "50")),
         burst_interval=args.burst_interval or float(os.getenv("BURST_INTERVAL", "1.0")),
-        critical_rate=args.critical_rate or float(os.getenv("CRITICAL_RATE", "0.1")),
+            critical_rate=_validated_rate(args.critical_rate or float(os.getenv("CRITICAL_RATE", "0.1"))),
         multi_region=os.getenv("MULTI_REGION", "true").lower() == "true",
         forced_region=args.region,
         verbose=args.verbose,
@@ -411,9 +425,12 @@ def cmd_run(config: Config) -> int:
                     config, on_connect_cb=on_connect, on_disconnect_cb=on_disconnect
                 )
                 if not connect_mqtt(client, reconnect_endpoint):
-                    log.error("Reconnexion échouée — pause 5s")
-                    time.sleep(5)
+                    backoff = getattr(cmd_run, "_backoff", 1)
+                    log.error("Reconnexion échouée — pause %ds", backoff)
+                    time.sleep(backoff)
+                    cmd_run._backoff = min(backoff * 2, 120)
                     continue
+                cmd_run._backoff = 1
 
             sensor_ids = random.sample(
                 range(1, config.sensor_count + 1),

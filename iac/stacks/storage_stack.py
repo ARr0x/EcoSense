@@ -201,6 +201,13 @@ class StorageStack(Construct):
 
         cdk.CfnOutput(
             self,
+            "FirehoseArn",
+            value=f"arn:aws:firehose:{stack.region}:{stack.account}:deliverystream/{self.delivery_stream.ref}",
+            description="ARN du Firehose delivery stream",
+        )
+
+        cdk.CfnOutput(
+            self,
             "AthenaWorkgroupName",
             value=f"ecosense-{stack.region}",
             description="Nom du workgroup Athena — sélectionner dans la console avant de requêter",

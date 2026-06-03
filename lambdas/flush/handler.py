@@ -17,6 +17,7 @@ from datetime import datetime, timedelta, timezone
 
 import boto3
 from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -30,6 +31,7 @@ ALERTS_TABLE = os.environ["ALERTS_TABLE"]
 SNS_TOPIC_ARN = os.environ["SNS_TOPIC_ARN"]
 LAMBDA_FLUSH_ARN = os.environ["LAMBDA_FLUSH_ARN"]
 SCHEDULER_ROLE_ARN = os.environ["SCHEDULER_ROLE_ARN"]
+SCHEDULER_DLQ_ARN = os.environ.get("SCHEDULER_DLQ_ARN", "")
 
 INTERVAL_MAX_SEC = 43200  # 12h
 
@@ -140,20 +142,31 @@ def _envoyer_mail_feed(
 
 
 def _creer_schedule(quartier: str, fire_at: datetime) -> str:
-    schedule_name = f"ecosense-flush-{quartier}-{int(fire_at.timestamp())}"
+    schedule_name = f"ecosense-flush-{quartier}-{int(fire_at.timestamp() * 1000)}"
     expr = f"at({fire_at.strftime('%Y-%m-%dT%H:%M:%S')})"
 
-    scheduler_client.create_schedule(
-        Name=schedule_name,
-        ScheduleExpression=expr,
-        ScheduleExpressionTimezone="UTC",
-        FlexibleTimeWindow={"Mode": "OFF"},
-        Target={
-            "Arn": LAMBDA_FLUSH_ARN,
-            "RoleArn": SCHEDULER_ROLE_ARN,
-            "Input": json.dumps({"quartier": quartier}),
-        },
-        ActionAfterCompletion="DELETE",
-    )
+    target = {
+        "Arn": LAMBDA_FLUSH_ARN,
+        "RoleArn": SCHEDULER_ROLE_ARN,
+        "Input": json.dumps({"quartier": quartier}),
+    }
+    if SCHEDULER_DLQ_ARN:
+        target["DeadLetterConfig"] = {"Arn": SCHEDULER_DLQ_ARN}
+
+    try:
+        scheduler_client.create_schedule(
+            Name=schedule_name,
+            ScheduleExpression=expr,
+            ScheduleExpressionTimezone="UTC",
+            FlexibleTimeWindow={"Mode": "OFF"},
+            Target=target,
+            ActionAfterCompletion="DELETE",
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConflictException":
+            logger.info("Schedule %s déjà existant, réutilisé", schedule_name)
+        else:
+            raise
+
     logger.info("Schedule créé : %s", schedule_name)
     return schedule_name

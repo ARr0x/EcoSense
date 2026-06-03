@@ -96,6 +96,14 @@ class AlertAggregatorStack(Construct):
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
+        # DLQ pour les invocations EventBridge Scheduler → Lambda Flush échouées
+        flush_scheduler_dlq = sqs.Queue(
+            self,
+            "FlushSchedulerDLQ",
+            queue_name=f"ecosense-flush-scheduler-dlq-{stack.region}",
+            retention_period=cdk.Duration.days(14),
+        )
+
         # ARN de flush_fn construit depuis son nom — évite la dépendance circulaire
         # que créerait flush_fn.function_arn (CDK ajouterait un DependsOn implicite
         # IngestFn → FlushFn → SqsEventSource → IngestFn).
@@ -126,6 +134,7 @@ class AlertAggregatorStack(Construct):
                 "SNS_TOPIC_ARN": alert_topic_arn,
                 "LAMBDA_FLUSH_ARN": flush_fn_arn,
                 "SCHEDULER_ROLE_ARN": f"arn:aws:iam::{stack.account}:role/LabRole",
+                "SCHEDULER_DLQ_ARN": flush_scheduler_dlq.queue_arn,
                 "FIRST_INTERVAL_SEC": str(first_interval_sec),
             },
         )
@@ -141,7 +150,7 @@ class AlertAggregatorStack(Construct):
             handler="handler.handler",
             code=lambda_.Code.from_asset(os.path.join(_REPO_ROOT, "lambdas", "ingest")),
             role=lab_role,
-            timeout=cdk.Duration.seconds(30),
+            timeout=cdk.Duration.seconds(60),
             memory_size=128,
             environment={
                 "STATE_TABLE": state_table.table_name,
@@ -149,6 +158,7 @@ class AlertAggregatorStack(Construct):
                 "SNS_TOPIC_ARN": alert_topic_arn,
                 "LAMBDA_FLUSH_ARN": flush_fn_arn,
                 "SCHEDULER_ROLE_ARN": f"arn:aws:iam::{stack.account}:role/LabRole",
+                "SCHEDULER_DLQ_ARN": flush_scheduler_dlq.queue_arn,
                 "FIRST_INTERVAL_SEC": str(first_interval_sec),
             },
         )
@@ -190,4 +200,11 @@ class AlertAggregatorStack(Construct):
             "FlushFnName",
             value=flush_fn.function_name,
             description="Nom Lambda Flush",
+        )
+
+        cdk.CfnOutput(
+            self,
+            "FlushSchedulerDLQUrl",
+            value=flush_scheduler_dlq.queue_url,
+            description="URL DLQ invocations Scheduler→Flush échouées",
         )

@@ -44,7 +44,13 @@ pip install -r iac/requirements.txt
 
 ### Buckets CDK assets (Learner Lab)
 
-L'environnement AWS Academy bloque le bootstrap CDK standard. Les buckets d'assets doivent être créés manuellement avant le premier déploiement :
+L'environnement AWS Academy bloque le bootstrap CDK standard. Utiliser la cible Makefile dédiée :
+
+```bash
+make bootstrap-bucket   # crée ou recrée les buckets CDK
+```
+
+Ou manuellement :
 
 ```bash
 aws s3 mb s3://ecosense-cdk-{ACCOUNT_ID}-us-east-1 --region us-east-1
@@ -83,16 +89,15 @@ cdk diff EcoSense-Primary
 
 ### Destruction
 
-La destruction nécessite de vider les buckets S3 au préalable (le versioning empêche la suppression automatique) :
+```bash
+make destroy   # vide les buckets + détruit les stacks (confirmation interactive)
+```
+
+Ou manuellement :
 
 ```bash
-# Vider le bucket d'archives (toutes versions)
-aws s3api list-object-versions --bucket ecosense-archives-{ACCOUNT_ID}-us-east-1 \
-    --output text --query 'Versions[].[Key,VersionId]' | \
-    while read key vid; do
-        aws s3api delete-object --bucket ecosense-archives-{ACCOUNT_ID}-us-east-1 \
-            --key "$key" --version-id "$vid"
-    done
+# Vider le bucket d'archives (pas de versioning, rm simple suffit)
+aws s3 rm s3://ecosense-archives-{ACCOUNT_ID}-us-east-1 --recursive
 
 # Détruire les stacks
 cdk destroy --all --force
