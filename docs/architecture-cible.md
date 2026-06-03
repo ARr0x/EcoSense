@@ -1,4 +1,4 @@
-# Documentation d'Architecture - EcoSense
+# Architecture cible — EcoSense
 ## Plateforme de Monitoring Environnemental Intelligent
 
 **Version:** 1.1  
@@ -17,7 +17,6 @@
 6. [Flux de données](#flux-de-données)
 7. [Considérations non-fonctionnelles](#considérations-non-fonctionnelles)
 8. [Architecture de sécurité](#architecture-de-sécurité)
-9. [Points à clarifier](#points-à-clarifier)
 
 ---
 
@@ -199,7 +198,7 @@ FROM 'sensors/+/metrics'
 - Charge estimée : faible (peu de capteurs = peu d'alertes critiques)
 
 **Scaling SNS :**
-- ✅ Pas de besoin actuel (volume d'alertes limité)
+- Pas de besoin actuel (volume d'alertes limité)
 - Volume SNS : typiquement < 100 messages/jour
 - Coût SNS : ~0.50 USD/mois (minimal)
 
@@ -234,7 +233,7 @@ FROM 'sensors/+/metrics'
 
 #### Retry & Error Handling
 - **Retry automatique** : 0 à 3600s exponential backoff
-- **Destination alternative (DLQ)** : ✅ À implémenter
+- **Destination alternative (DLQ)** : À implémenter
   - Bucket S3 `ecosense-firehose-dlq/` pour messages rejetés
   - CloudWatch alarm si > 100 messages/min en DLQ
   - Investigation manuelle requise
@@ -257,7 +256,7 @@ FROM 'sensors/+/metrics'
   Jour 30+    → Suppression automatique
   ```
 
-#### S3 Cross-Region Replication (CRR) ✅ ACTIVÉ
+#### S3 Cross-Region Replication (CRR) ACTIVÉ
 - **Source** : Bucket Region 1 (Primary)
 - **Destination** : Bucket us-east-2 (Replica)
 - **Réplication** : Automatique, temps quasi-réel (~15 sec)
@@ -265,10 +264,10 @@ FROM 'sensors/+/metrics'
 - **Delete marker replication** : Activé (suppressions aussi répliquées)
 
 **Avantages CRR :**
-- ✅ RPO = ~15 secondes (données synchronisées)
-- ✅ Disaster recovery : récupération instant en cas panne Region 1
-- ✅ Analytics distribuées possibles (Athena lit depuis Region 2)
-- ✅ Coût acceptable : ~200 USD/mois supplémentaires
+- RPO = ~15 secondes (données synchronisées)
+- Disaster recovery : récupération instant en cas panne Region 1
+- Analytics distribuées possibles (Athena lit depuis Region 2)
+- Coût acceptable : ~200 USD/mois supplémentaires
 
 #### Structure de partitioning (par timestamp)
 ```
@@ -399,10 +398,10 @@ Nouveau flux (post-bascule) continue dans us-east-2
 **RPO** : ~15 secondes (S3 CRR synchronise quasi-temps réel)  
 
 **Architecture notes :**
-- ✅ S3 CRR activé : Region 1 → us-east-2 (réplication automatique)
-- ✅ Données us-east-2 étaient déjà synchronisées (RPO 15s)
-- ✅ Perte maximale : 15-20 sec de données (le temps du dernier flush Firehose)
-- ✅ Pas besoin d'intervention manuelle : basculement complètement automatique
+- S3 CRR activé : Region 1 → us-east-2 (réplication automatique)
+- Données us-east-2 étaient déjà synchronisées (RPO 15s)
+- Perte maximale : 15-20 sec de données (le temps du dernier flush Firehose)
+- Pas besoin d'intervention manuelle : basculement complètement automatique
 
 **Avantage vs sans CRR :**
 - Sans CRR : RPO = 2-3 min, intervention manuelle possible
@@ -454,10 +453,10 @@ SHARED (analytics, 1 instance):
 ────────────────────────────────────────────
 TOTAL MENSUEL                                 ≈ 1,780 USD
 
-✅ S3 avec CRR (haute dispo) : RPO = 15 sec
-✅ Pas de Glacier (rétention 30j seulement)
-✅ Data transfer inter-région : ~50-100 USD/mois (estimé, non inclus)
-✅ Peu d'alertes SNS → coût minimal
+S3 avec CRR (haute dispo) : RPO = 15 sec
+Pas de Glacier (rétention 30j seulement)
+Data transfer inter-région : ~50-100 USD/mois (estimé, non inclus)
+Peu d'alertes SNS → coût minimal
 ```
 
 ### 4. Monitoring & Alerting
@@ -783,13 +782,13 @@ Renforcer le principe d'immutabilité déjà mentionné dans l'architecture :
 
 | Domaine | Contrôle | Statut recommandé |
 |---------|----------|--------------------|
-| **Authentification IoT** | Certificats X.509 mutuels (mTLS) | ✅ En place |
-| **Autorisation IoT** | Policy par capteur, topic restreint | ✅ À implémenter |
-| **Chiffrement transit** | TLS 1.2+ sur tous les segments | ✅ En place |
+| **Authentification IoT** | Certificats X.509 mutuels (mTLS) | En place |
+| **Autorisation IoT** | Policy par capteur, topic restreint | À implémenter |
+| **Chiffrement transit** | TLS 1.2+ sur tous les segments | En place |
 | **Chiffrement repos** | SSE-KMS sur S3, Firehose, SNS | ⚠️ À implémenter (KMS dédié) |
 | **Moindre privilège IAM** | Rôles dédiés par service, pas de wildcard | ⚠️ À implémenter |
 | **Isolation réseau** | VPC Endpoints pour services internes | 🔴 À décider (voir §3.1) |
-| **Blocage accès public S3** | S3 Block Public Access | ✅ À activer |
+| **Blocage accès public S3** | S3 Block Public Access | À activer |
 | **Audit CloudTrail** | Logs toutes régions, bucket immuable | ⚠️ À implémenter |
 | **Rotation certificats** | Renouvellement annuel + révocation | ⚠️ Processus à définir |
 | **MFA humains** | MFA obligatoire sur tous les comptes IAM | ⚠️ À enforcer |
@@ -797,101 +796,6 @@ Renforcer le principe d'immutabilité déjà mentionné dans l'architecture :
 | **S3 Object Lock** | Immutabilité données brutes 30 jours | 🔴 À décider |
 | **Séparation des rôles** | Opérateurs / Data Scientists / Admins | ⚠️ À formaliser |
 
-**Légende :** ✅ En place / ⚠️ À implémenter / 🔴 À décider ou optionnel
+**Légende :** En place / ⚠️ À implémenter / 🔴 À décider ou optionnel
 
----
-
-
-
-### ✅ Décisions confirmées
-1. **Architecture multi-région** : Duplication complète (Region 1 + us-east-2), failover DNS via Route 53
-2. **S3 Partitioning** : Par timestamp (YYYY/MM/DD/HH/) pour fraîcheur 5-10 min
-3. **Firehose buffering** : 5MB ou 300s (ce qui arrive en premier)
-4. **Rétention S3** : 30 jours (suppression automatique, pas Glacier)
-5. **Scaling SNS** : Non requis (volume alertes actuel très faible)
-6. **S3 Cross-Region Replication (CRR)** : ✅ **OUI, ACTIVÉ**
-   - RPO = ~15 secondes (données quasi-synchronisées)
-   - Coût : +200 USD/mois
-   - Avantage : zéro perte données pratiquement garantie
-
-### 🔴 À décider encore
-
-**#1. Dead Letter Queue (DLQ) pour Firehose - PRIORITAIRE**
-- Implémentation recommandée : Bucket S3 séparé `ecosense-firehose-dlq/`
-- Messages rejetés (format invalide, etc.) s'accumulent ici
-- CloudWatch alarm si DLQ > 100 messages/jour
-- Action : Implémenter DLQ + alarm via script Python (boto3) avant production
-
-**#2. Monitoring avancé & SLA interne**
-- Actuellement : CloudWatch metrics de base
-- À valider : SLA interne acceptable ? (< 1 min pour alertes critiques ✅, 5-10 min pour analytique ✅)
-- À ajouter : Dashboard opérationnel custom (dépend outils internes)
-
-**#3. Sécurité : Besoin VPC isolation ?**
-- Actuellement : IoT Core public endpoint + certificats
-- Option : VPC IoT Core endpoint (isolation réseau, coût +50 USD/mois)
-- Décision : dépend politique sécurité interne
-
----
-
-## Prochaines étapes (Roadmap)
-
-### Phase 1 : Finalisation architecture (URGENT - semaine 1)
-- [ ] **Décider DLQ** : Approuver implémentation Firehose DLQ
-- [ ] **Décider CRR** : S3 Cross-Region Replication oui/non ?
-- [ ] **Valider SLA** : Latence cibles acceptables ?
-- [ ] **Sécurité review** : VPC isolation, KMS encryption, IAM policies
-- [ ] **Estimation capteurs** : Combien exactement ? (affecte coûts)
-- [ ] **Sécurité - IAM** : Définir et créer les rôles IAM minimaux par service (§ Architecture de sécurité 1.1)
-- [ ] **Sécurité - KMS** : Créer les clés KMS dédiées et activer SSE-KMS sur S3, Firehose, SNS (§2.2)
-- [ ] **Sécurité - IoT Policy** : Restreindre les policies IoT par capteur / topic (§1.3)
-- [ ] **Sécurité - S3** : Activer Block Public Access + bucket policy enforcement chiffrement (§3.3)
-- [ ] **Sécurité - CloudTrail** : Activer audit multi-région avec bucket immuable dédié (§5.1)
-- [ ] **Sécurité - MFA** : Enforcer MFA sur tous les comptes IAM humains (§4.2)
-- [ ] **Sécurité - VPC Endpoints** : Décider périmètre VPC isolation (§3.1 — coût ~+57 USD/mois minimum)
-
-### Phase 2 : Infrastructure as Code (2-3 semaines)
-- [ ] Créer scripts Python / boto3 (Region 1 + us-east-2)
-  - IoT Core + Rules
-  - Firehose + S3
-  - SNS + DLQ
-  - Route 53 health checks
-  - **Rôles IAM minimaux par service** (§ Architecture de sécurité 1.1)
-  - **KMS keys + rotation automatique** (§2.3)
-  - **VPC Endpoints** (selon décision Phase 1)
-  - **S3 Object Lock + Block Public Access** (§3.3 / §6.2)
-  - **CloudTrail multi-région + bucket audit immuable** (§5.1)
-- [ ] Validation dry-run (mode `--dry-run` boto3 ou simulation locale)
-- [ ] Documentation runbooks d'opération
-- [ ] **Documentation runbooks de sécurité** (§7.2 — révocation certificat, credential leak, accès anormal)
-
-### Phase 3 : Testing (1-2 semaines)
-- [ ] **Load test** : 1,000 msg/sec sur 5 min (capacité check)
-- [ ] **Failover test** : Simuler panne Region 1 → vérifier basculement
-- [ ] **Data integrity** : Vérifier zéro perte sur 24h
-- [ ] **Latence SLA** : Mesurer P95 latence alertes critiques
-- [ ] **Sécurité - Penetration test IoT** : Tentative usurpation certificat capteur → vérifier blocage
-- [ ] **Sécurité - IAM privilege escalation** : Vérifier qu'aucun rôle ne peut dépasser son scope
-- [ ] **Sécurité - Certificate revocation** : Simuler révocation → vérifier déconnexion immédiate capteur
-- [ ] **Sécurité - Audit trail** : Vérifier cohérence logs CloudTrail sur un flux de test
-
-### Phase 4 : Déploiement production (1 semaine)
-- [ ] Déploiement Region 1
-- [ ] Déploiement us-east-2 (réplication)
-- [ ] Validation santé complète
-- [ ] Cutover capteurs (progressive)
-
-### Phase 5 : Monitoring à long terme
-- [ ] Dashboards QuickSight opérationnels
-- [ ] Alertes CloudWatch configurées
-- [ ] Runbooks incident (panne région, data loss, etc.)
-- [ ] Coûts : tracking mensuel vs budget
-- [ ] **Sécurité - Alarms CloudWatch** : Configurer métriques sécurité (§5.3 — auth failures, KMS errors, accès anormaux)
-- [ ] **Sécurité - GuardDuty** : Évaluer activation (§5.4)
-- [ ] **Sécurité - Rotation préventive** : Planifier renouvellement des certificats capteurs (§4.1)
-- [ ] **Sécurité - Review IAM annuelle** : Audit des permissions vs usage réel (Access Analyzer AWS)
-
----
-
-**Révision prochaine :** Après décisions sur DLQ et CRR
-
+> Les décisions prises et la roadmap vers la production sont documentées dans [limitations-et-ameliorations.md](limitations-et-ameliorations.md).

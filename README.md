@@ -81,5 +81,7 @@ Consulter `make help` pour la liste complète des cibles disponibles.
 
 ## Documentation
 
-- [Infrastructure](docs/infrastructure.md) — composants AWS, flux de données, ressources déployées
+- [Infrastructure](docs/infrastructure.md) — composants AWS déployés, flux de données, ressources par région
+- [Architecture cible](docs/architecture-cible.md) — architecture production (Route 53, CRR, KMS, sécurité complète)
+- [Limitations et améliorations](docs/limitations-et-ameliorations.md) — contraintes AWS Academy, delta actuel → production, améliorations identifiées
 - [Scripts et commandes](docs/usage.md) — CDK, provision_certs.py, simulator_mqtt.py, AWS CLI
