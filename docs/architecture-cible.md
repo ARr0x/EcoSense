@@ -61,62 +61,7 @@ L'architecture répond à deux flux parallèles et complémentaires :
 
 ## Architecture générale
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     CAPTEURS IoT (Terrain)                       │
-│                  - Certificats MQTT uniques                      │
-│                  - Protocole MQTT TLS 1.2+                       │
-└──────────────────────────────────────────────────────────────────┘
-                               │
-                               ↓ MQTT over TLS
-┌──────────────────────────────────────────────────────────────────┐
-│                      Route 53 (DNS Global)                        │
-│     Health Checks → Basculement endpoint                          │
-│     (Region 1 ↔ us-east-2 failover automatique)                  │
-└──────────────────────────────────────────────────────────────────┘
-                               │
-                    ┌──────────┴──────────┐
-                    ↓                     ↓
-         ┌──────────────────────┐ ┌──────────────────────┐
-         │  REGION 1            │ │  us-east-2           │
-         │  ─────────────────── │ │  ─────────────────── │
-         │  IoT Core + Rules    │ │  IoT Core + Rules    │
-         │  SNS + Firehose      │ │  SNS + Firehose      │
-         │  S3 (Primary)        │ │  S3 (Replica)        │
-         └──────┬───────────────┘ └──────┬───────────────┘
-                │                        │
-        ┌───────┴──────┐         ┌───────┴──────┐
-        ↓              ↓         ↓              ↓
-    ┌────────┐  ┌──────────┐ ┌────────┐  ┌──────────┐
-    │  SNS   │  │Firehose  │ │  SNS   │  │Firehose  │
-    │alerts  │  │(buffering)│ │alerts  │  │(buffering)│
-    └─┬──────┘  └────┬─────┘ └────┬───┘  └────┬─────┘
-      │              │            │            │
-      ↓              ↓            ↓            ↓
-   [Email]    ┌────────────────────────────────┐
-              │    S3 (Cross-Region Replica)   │
-              │  - Primary (Region 1)          │
-              │  - Replica → us-east-2 (auto)  │
-              │  - Partitioning: YYYY/MM/DD/HH │
-              │  - Retention: 30 jours         │
-              └────────┬─────────────────────┘
-                       │
-           ┌───────────┴──────────┐
-           ↓                      ↓
-        ┌──────┐            ┌──────────┐
-        │ Glue │            │  Athena  │
-        │Catalog│            │ Queries  │
-        └───┬──┘            └────┬─────┘
-            │                    │
-            └──────────┬─────────┘
-                       ↓
-                ┌──────────────┐
-                │ QuickSight   │
-                │ (Dashboards) │
-                └──────────────┘
-```
-
----
+![ecosensArchi](img/archiecosens.png)
 
 ## Description des composants
 
