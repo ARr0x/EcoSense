@@ -4,17 +4,13 @@
 
 ## Vue d'ensemble
 
-![Architecture EcoSense](img/ecosense_archi.png)
 
-```
-Simulateur MQTT (mTLS)
-  └─→ IoT Core — Topic Rules SQL
-       ├─→ [status = CRITICAL]  → SQS → Lambda Ingest ─┐
-       │                                                 ├─→ DynamoDB (état + buffer)
-       │                                           Lambda Flush ←── EventBridge Scheduler
-       │                                                 └─→ SNS → Email abonnés
-       └─→ [100% du flux]  → Kinesis Firehose → S3 → Glue / Athena
-```
+![Architecture EcoSense](img/archiecosens.png)
+
+## Vue Pipeline Alerte 
+
+![Architecture EcoSenseAlerte](img/alertingarchitecture.png)
+
 
 Deux régions déployées de manière identique et indépendante :
 
