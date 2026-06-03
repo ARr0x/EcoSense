@@ -1,7 +1,7 @@
 # Documentation d'Architecture - EcoSense
 ## Plateforme de Monitoring Environnemental Intelligent
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** Juin 2026  
 **Propriétaire:** DevOps / Infrastructure  
 **Statut:** En révision
@@ -16,7 +16,8 @@
 5. [Description des composants](#description-des-composants)
 6. [Flux de données](#flux-de-données)
 7. [Considérations non-fonctionnelles](#considérations-non-fonctionnelles)
-8. [Points à clarifier](#points-à-clarifier)
+8. [Architecture de sécurité](#architecture-de-sécurité)
+9. [Points à clarifier](#points-à-clarifier)
 
 ---
 
@@ -474,7 +475,333 @@ TOTAL MENSUEL                                 ≈ 1,780 USD
 
 ---
 
-## Points à clarifier (V2.1 - CRR confirmé ✅)
+
+---
+
+## Architecture de sécurité
+
+Cette section couvre l'ensemble des mesures de sécurité applicables à EcoSense, organisées selon les grandes lignes directrices : **moindre privilège**, **défense en profondeur**, **chiffrement systématique**, **traçabilité et audit**, et **gestion des identités**.
+
+---
+
+### 1. Principe de moindre privilège (Least Privilege)
+
+Le principe fondateur de cette section : **chaque composant, utilisateur ou service ne doit avoir accès qu'aux ressources strictement nécessaires à son rôle**, ni plus.
+
+#### 1.1 IAM Policies — Règle du besoin d'en savoir
+
+Chaque service AWS doit disposer d'un rôle IAM dédié avec des permissions minimales explicites. Aucun rôle `*` (wildcard) en production.
+
+| Service | Permissions autorisées | Permissions explicitement refusées |
+|---------|------------------------|-------------------------------------|
+| **IoT Core Rules** | `firehose:PutRecord`, `sns:Publish` (topics ciblés) | Tout le reste AWS |
+| **Firehose** | `s3:PutObject` (bucket `ecosense-raw-data/` uniquement) | `s3:GetObject`, `s3:DeleteObject` |
+| **Glue Crawler** | `s3:GetObject`, `s3:ListBucket` (read-only) | `s3:PutObject`, `s3:DeleteObject` |
+| **Athena** | `s3:GetObject` sur `ecosense-raw-data/`, `s3:PutObject` sur bucket résultats | Toute autre ressource S3 |
+| **QuickSight** | `athena:StartQueryExecution`, accès résultats Athena uniquement | Accès direct S3 raw data |
+| **SNS** | Publish vers abonnés autorisés | Création/suppression de topics |
+
+```python
+import boto3, json
+
+iam = boto3.client("iam")
+
+policy_document = {
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Action": ["s3:PutObject"],
+        "Resource": "arn:aws:s3:::ecosense-raw-data/*"
+    }]
+}
+
+# Attacher la policy inline au rôle Firehose
+iam.put_role_policy(
+    RoleName="ecosense-firehose-role",
+    PolicyName="firehose-s3-write-only",
+    PolicyDocument=json.dumps(policy_document)
+)
+```
+
+#### 1.2 Séparation des responsabilités (Separation of Duties)
+
+- **Opérateurs infrastructure** : accès aux ressources AWS (Firehose, IoT Core), sans accès aux données brutes S3
+- **Data Scientists / Analystes** : accès Athena + QuickSight, sans accès direct aux buckets S3 ni aux règles IoT
+- **Administrateurs sécurité** : accès aux logs CloudTrail, KMS, IAM — sans accès aux données métier
+- **Capteurs IoT** : uniquement `iot:Publish` sur leurs propres topics (`sensors/{sensor_id}/metrics`)
+
+#### 1.3 Scoping des certificats IoT
+
+Chaque capteur reçoit un certificat X.509 unique, associé à une **IoT Policy restrictive** :
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["iot:Connect"],
+      "Resource": "arn:aws:iot:*:*:client/${iot:ClientId}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["iot:Publish"],
+      "Resource": "arn:aws:iot:*:*:topic/sensors/${iot:ClientId}/metrics"
+    },
+    {
+      "Effect": "Deny",
+      "Action": ["iot:Subscribe", "iot:Receive"],
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+→ Un capteur ne peut publier **que sur son propre topic**. Il ne peut ni lire les données des autres capteurs, ni s'abonner à des topics.
+
+---
+
+### 2. Chiffrement — Données en transit et au repos
+
+#### 2.1 En transit (in-transit)
+
+| Segment | Protocole | Notes |
+|---------|-----------|-------|
+| Capteurs → IoT Core | MQTT over TLS 1.2+ | Certificats mutuels (mTLS) |
+| IoT Core → Firehose | HTTPS / AWS internal TLS | Chiffré par défaut dans le réseau AWS |
+| Firehose → S3 | HTTPS / AWS internal TLS | Chiffré par défaut |
+| S3 → Athena | HTTPS | Chiffré par défaut |
+| Athena → QuickSight | HTTPS | Chiffré par défaut |
+| S3 CRR (cross-region) | TLS interne AWS | Chiffré en transit inter-régions |
+
+**Vérification TLS :** désactiver explicitement TLS 1.0 et 1.1 sur tous les endpoints. Forcer TLS 1.2 minimum (TLS 1.3 recommandé).
+
+#### 2.2 Au repos (at-rest)
+
+- **S3** : chiffrement SSE-KMS (Server-Side Encryption avec AWS KMS)
+  - Une clé KMS dédiée `ecosense-data-key` (rotation annuelle automatique)
+  - Bucket policy pour **refuser** les `PutObject` sans chiffrement :
+  ```json
+  {
+    "Effect": "Deny",
+    "Principal": "*",
+    "Action": "s3:PutObject",
+    "Resource": "arn:aws:s3:::ecosense-raw-data/*",
+    "Condition": {
+      "StringNotEquals": { "s3:x-amz-server-side-encryption": "aws:kms" }
+    }
+  }
+  ```
+- **Kinesis Firehose** : chiffrement KMS activé sur le stream
+- **SNS** : chiffrement SSE activé (clé KMS dédiée ou AWS managed)
+- **Glue Data Catalog** : chiffrement des métadonnées activé
+
+#### 2.3 Gestion des clés KMS
+
+| Clé | Usage | Rotation |
+|-----|-------|----------|
+| `ecosense-data-key` | Chiffrement S3 raw data (les deux régions) | Annuelle (automatique) |
+| `ecosense-stream-key` | Chiffrement Firehose streams | Annuelle (automatique) |
+| `ecosense-sns-key` | Chiffrement SNS topics | Annuelle (automatique) |
+
+- Politique KMS : uniquement les rôles IAM autorisés peuvent utiliser `kms:Decrypt`
+- Accès `kms:CreateKey`, `kms:ScheduleKeyDeletion` réservé aux administrateurs sécurité
+
+---
+
+### 3. Isolation réseau
+
+#### 3.1 VPC et VPC Endpoints (recommandé)
+
+Pour empêcher que le trafic entre AWS et les services transite par internet public :
+
+| Service | Action recommandée |
+|---------|--------------------|
+| **S3** | VPC Endpoint (Gateway) — gratuit, trafic interne AWS |
+| **Kinesis Firehose** | VPC Endpoint (Interface) — ~$7/mois |
+| **IoT Core** | VPC Endpoint optionnel (coût +50 USD/mois, cf. points à clarifier) |
+| **Athena** | VPC Endpoint (Interface) — recommandé pour data scientists internes |
+| **Glue** | VPC Endpoint (Interface) |
+
+**Bucket Policy S3 — restriction aux VPC Endpoints uniquement :**
+```json
+{
+  "Effect": "Deny",
+  "Principal": "*",
+  "Action": "s3:*",
+  "Resource": ["arn:aws:s3:::ecosense-raw-data", "arn:aws:s3:::ecosense-raw-data/*"],
+  "Condition": {
+    "StringNotEquals": { "aws:SourceVpce": "vpce-XXXXXXXXX" }
+  }
+}
+```
+
+#### 3.2 Security Groups
+
+- **IoT Core** : uniquement port 8883 (MQTT/TLS) entrant depuis Internet (capteurs terrain)
+- **Services internes** (Glue, Athena, Firehose) : aucun accès Internet direct — uniquement via VPC Endpoints
+- **QuickSight** : accès HTTPS depuis les réseaux internes uniquement (pas d'exposition publique)
+
+#### 3.3 Blocage S3 public
+
+Activer le **S3 Block Public Access** sur tous les buckets (paramètre au niveau du compte AWS) :
+
+```python
+import boto3
+
+s3 = boto3.client("s3")
+
+s3.put_public_access_block(
+    Bucket="ecosense-raw-data",
+    PublicAccessBlockConfiguration={
+        "BlockPublicAcls": True,
+        "BlockPublicPolicy": True,
+        "IgnorePublicAcls": True,
+        "RestrictPublicBuckets": True
+    }
+)
+```
+
+---
+
+### 4. Authentification et gestion des identités
+
+#### 4.1 Capteurs IoT — Rotation et révocation des certificats
+
+- **Rotation préventive** : renouvellement des certificats X.509 tous les 12 mois
+- **Révocation immédiate** : en cas de compromission, désactiver le certificat dans AWS IoT Core (liste CRL ou politique `INACTIVE`)
+- **Inventaire des certificats** : chaque capteur référencé dans un registre IoT Core avec métadonnées (localisation, date installation, date expiration certificat)
+
+```
+IoT Core Registry → Thing Name: sensor-paris-01-district-3
+                  → Certificate ARN: arn:aws:iot:eu-west-1:XXXX:cert/YYYY
+                  → Status: ACTIVE / INACTIVE
+                  → Expires: 2027-06-01
+```
+
+#### 4.2 Accès humains — Comptes et MFA
+
+- **MFA obligatoire** pour tous les comptes AWS IAM humains (opérateurs, admins, data scientists)
+- **Comptes de service** (utilisés par les applications) : pas de console AWS, credentials rotés via AWS Secrets Manager ou rôles IAM
+- **Pas de clés d'accès AWS statiques** dans le code ou les variables d'environnement
+- **AWS SSO / IAM Identity Center** recommandé pour la gestion centralisée des accès humains
+
+#### 4.3 Accès analytique (QuickSight / Athena)
+
+- Authentification via **AWS IAM** ou **AWS SSO**
+- Groupes d'accès distincts : `ecosense-analysts` (lecture seule) vs `ecosense-ops` (opérations)
+- Pas d'accès direct aux buckets S3 pour les analystes : uniquement via Athena (couche d'abstraction)
+
+---
+
+### 5. Traçabilité et audit
+
+#### 5.1 CloudTrail — Audit de toutes les actions AWS
+
+**CloudTrail activé** dans toutes les régions utilisées (Region 1 + us-east-2) :
+
+- **Management Events** : création/suppression de ressources, modifications IAM, changements KMS
+- **Data Events S3** : `GetObject`, `PutObject`, `DeleteObject` sur `ecosense-raw-data/` (volume élevé — filtrer si coûts importants)
+- **Data Events IoT Core** : connexions, publications de messages (activé si besoin de forensics)
+
+Logs CloudTrail stockés dans un **bucket S3 dédié et séparé** (`ecosense-audit-logs/`) avec :
+- Accès restreint aux administrateurs sécurité uniquement
+- Chiffrement KMS dédié (`ecosense-audit-key`)
+- **Verrouillage S3 Object Lock** : rétention immuable 1 an (empêche toute suppression ou modification des logs)
+
+#### 5.2 Logs applicatifs — IoT Core et Firehose
+
+- **IoT Core Logs** : activer les logs de niveau `ERROR` en production, `DEBUG` lors des investigations
+  - Destination : CloudWatch Logs `/ecosense/iot-core/`
+- **Firehose Logs** : erreurs de livraison vers S3 loguées dans CloudWatch
+  - Alarm si taux d'erreur > 1%
+
+#### 5.3 Métriques de sécurité à monitorer dans CloudWatch
+
+| Métrique | Seuil d'alerte | Action |
+|----------|----------------|--------|
+| `IoT.AuthenticationFailures` | > 10/min | Investigation immédiate (tentative d'usurpation) |
+| `IoT.AuthorizationFailures` | > 5/min | Vérification politique IAM / certificats |
+| `KMS.InvalidKeyId` | > 0 | Investigation (tentative accès données chiffrées) |
+| `S3.GetObject` depuis IP non-VPC | Tout | Alerte (accès hors VPC endpoint) |
+| Connexion depuis nouveau capteur inconnu | Tout | Alerte (registre IoT Core) |
+
+#### 5.4 GuardDuty (recommandé)
+
+Activer **AWS GuardDuty** pour la détection d'anomalies automatique :
+- Détection d'accès S3 inhabituels (exfiltration de données)
+- Détection de comportements IAM anormaux (credential compromise)
+- Intégration avec SNS pour alertes opérationnelles de sécurité
+
+---
+
+### 6. Protection des données et conformité
+
+#### 6.1 Classification des données
+
+| Type de donnée | Niveau de sensibilité | Mesures appliquées |
+|---------------|----------------------|-------------------|
+| Métriques environnementales brutes | **Faible** (données publiques potentielles) | Chiffrement KMS, accès restreint |
+| Localisation précise des capteurs | **Moyen** (infrastructure critique) | Accès opérateurs uniquement, non exposé analytique |
+| Certificats IoT et clés privées | **Critique** | Jamais stockés en clair, rotation, révocation rapide |
+| Logs d'audit CloudTrail | **Critique** | Bucket séparé, immuable, accès admins sécurité uniquement |
+
+#### 6.2 Immutabilité des données brutes
+
+Renforcer le principe d'immutabilité déjà mentionné dans l'architecture :
+- **S3 Object Lock** (Governance Mode) sur `ecosense-raw-data/` : empêche la suppression accidentelle ou malveillante des données avant l'expiration des 30 jours
+- **Versionning S3** activé (contrairement à la version actuelle) pour permettre la restauration en cas d'écrasement accidentel
+
+#### 6.3 Minimisation des données
+
+- Les règles SQL IoT Core ne doivent transmettre à Firehose que les champs nécessaires (éviter `SELECT *` si des champs sensibles peuvent apparaître)
+- Les dashboards QuickSight ne doivent jamais exposer directement les identifiants techniques des capteurs à des utilisateurs non-opérateurs (pseudonymisation si besoin)
+
+---
+
+### 7. Gestion des incidents de sécurité
+
+#### 7.1 Procédures de réponse rapide
+
+| Incident | Action immédiate | Délai cible |
+|----------|-----------------|-------------|
+| Certificat capteur compromis | Désactiver le certificat dans IoT Core Registry | < 15 minutes |
+| Fuite de credentials AWS | Révoquer les clés IAM, audit CloudTrail | < 30 minutes |
+| Accès non autorisé à S3 | Bloquer l'IP/principal IAM, audit des accès | < 30 minutes |
+| Clé KMS compromise | Rotation d'urgence, re-chiffrement des données | < 2 heures |
+
+#### 7.2 Runbooks de sécurité à créer (Phase 2)
+
+- `runbook-certificate-revocation.md` : procédure de révocation certificat capteur
+- `runbook-iam-credential-leak.md` : procédure de compromission de credentials
+- `runbook-data-access-anomaly.md` : investigation d'un accès S3 anormal
+- `runbook-kms-key-rotation.md` : rotation d'urgence des clés KMS
+
+---
+
+### 8. Récapitulatif des contrôles de sécurité
+
+| Domaine | Contrôle | Statut recommandé |
+|---------|----------|--------------------|
+| **Authentification IoT** | Certificats X.509 mutuels (mTLS) | ✅ En place |
+| **Autorisation IoT** | Policy par capteur, topic restreint | ✅ À implémenter |
+| **Chiffrement transit** | TLS 1.2+ sur tous les segments | ✅ En place |
+| **Chiffrement repos** | SSE-KMS sur S3, Firehose, SNS | ⚠️ À implémenter (KMS dédié) |
+| **Moindre privilège IAM** | Rôles dédiés par service, pas de wildcard | ⚠️ À implémenter |
+| **Isolation réseau** | VPC Endpoints pour services internes | 🔴 À décider (voir §3.1) |
+| **Blocage accès public S3** | S3 Block Public Access | ✅ À activer |
+| **Audit CloudTrail** | Logs toutes régions, bucket immuable | ⚠️ À implémenter |
+| **Rotation certificats** | Renouvellement annuel + révocation | ⚠️ Processus à définir |
+| **MFA humains** | MFA obligatoire sur tous les comptes IAM | ⚠️ À enforcer |
+| **GuardDuty** | Détection d'anomalies automatisée | 🔴 Optionnel mais recommandé |
+| **S3 Object Lock** | Immutabilité données brutes 30 jours | 🔴 À décider |
+| **Séparation des rôles** | Opérateurs / Data Scientists / Admins | ⚠️ À formaliser |
+
+**Légende :** ✅ En place / ⚠️ À implémenter / 🔴 À décider ou optionnel
+
+---
+
+
 
 ### ✅ Décisions confirmées
 1. **Architecture multi-région** : Duplication complète (Region 1 + us-east-2), failover DNS via Route 53
@@ -493,7 +820,7 @@ TOTAL MENSUEL                                 ≈ 1,780 USD
 - Implémentation recommandée : Bucket S3 séparé `ecosense-firehose-dlq/`
 - Messages rejetés (format invalide, etc.) s'accumulent ici
 - CloudWatch alarm si DLQ > 100 messages/jour
-- Action : Implémenter DLQ + alarm dans Terraform avant production
+- Action : Implémenter DLQ + alarm via script Python (boto3) avant production
 
 **#2. Monitoring avancé & SLA interne**
 - Actuellement : CloudWatch metrics de base
@@ -515,21 +842,38 @@ TOTAL MENSUEL                                 ≈ 1,780 USD
 - [ ] **Valider SLA** : Latence cibles acceptables ?
 - [ ] **Sécurité review** : VPC isolation, KMS encryption, IAM policies
 - [ ] **Estimation capteurs** : Combien exactement ? (affecte coûts)
+- [ ] **Sécurité - IAM** : Définir et créer les rôles IAM minimaux par service (§ Architecture de sécurité 1.1)
+- [ ] **Sécurité - KMS** : Créer les clés KMS dédiées et activer SSE-KMS sur S3, Firehose, SNS (§2.2)
+- [ ] **Sécurité - IoT Policy** : Restreindre les policies IoT par capteur / topic (§1.3)
+- [ ] **Sécurité - S3** : Activer Block Public Access + bucket policy enforcement chiffrement (§3.3)
+- [ ] **Sécurité - CloudTrail** : Activer audit multi-région avec bucket immuable dédié (§5.1)
+- [ ] **Sécurité - MFA** : Enforcer MFA sur tous les comptes IAM humains (§4.2)
+- [ ] **Sécurité - VPC Endpoints** : Décider périmètre VPC isolation (§3.1 — coût ~+57 USD/mois minimum)
 
 ### Phase 2 : Infrastructure as Code (2-3 semaines)
-- [ ] Créer templates Terraform (Region 1 + us-east-2)
+- [ ] Créer scripts Python / boto3 (Region 1 + us-east-2)
   - IoT Core + Rules
   - Firehose + S3
   - SNS + DLQ
   - Route 53 health checks
-- [ ] Validation cloudformation (dry-run)
+  - **Rôles IAM minimaux par service** (§ Architecture de sécurité 1.1)
+  - **KMS keys + rotation automatique** (§2.3)
+  - **VPC Endpoints** (selon décision Phase 1)
+  - **S3 Object Lock + Block Public Access** (§3.3 / §6.2)
+  - **CloudTrail multi-région + bucket audit immuable** (§5.1)
+- [ ] Validation dry-run (mode `--dry-run` boto3 ou simulation locale)
 - [ ] Documentation runbooks d'opération
+- [ ] **Documentation runbooks de sécurité** (§7.2 — révocation certificat, credential leak, accès anormal)
 
 ### Phase 3 : Testing (1-2 semaines)
 - [ ] **Load test** : 1,000 msg/sec sur 5 min (capacité check)
 - [ ] **Failover test** : Simuler panne Region 1 → vérifier basculement
 - [ ] **Data integrity** : Vérifier zéro perte sur 24h
 - [ ] **Latence SLA** : Mesurer P95 latence alertes critiques
+- [ ] **Sécurité - Penetration test IoT** : Tentative usurpation certificat capteur → vérifier blocage
+- [ ] **Sécurité - IAM privilege escalation** : Vérifier qu'aucun rôle ne peut dépasser son scope
+- [ ] **Sécurité - Certificate revocation** : Simuler révocation → vérifier déconnexion immédiate capteur
+- [ ] **Sécurité - Audit trail** : Vérifier cohérence logs CloudTrail sur un flux de test
 
 ### Phase 4 : Déploiement production (1 semaine)
 - [ ] Déploiement Region 1
@@ -542,6 +886,10 @@ TOTAL MENSUEL                                 ≈ 1,780 USD
 - [ ] Alertes CloudWatch configurées
 - [ ] Runbooks incident (panne région, data loss, etc.)
 - [ ] Coûts : tracking mensuel vs budget
+- [ ] **Sécurité - Alarms CloudWatch** : Configurer métriques sécurité (§5.3 — auth failures, KMS errors, accès anormaux)
+- [ ] **Sécurité - GuardDuty** : Évaluer activation (§5.4)
+- [ ] **Sécurité - Rotation préventive** : Planifier renouvellement des certificats capteurs (§4.1)
+- [ ] **Sécurité - Review IAM annuelle** : Audit des permissions vs usage réel (Access Analyzer AWS)
 
 ---
 
