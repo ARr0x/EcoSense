@@ -1,0 +1,426 @@
+{
+  "/EcoSense-Primary": [
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    },
+    {
+      "type": "aws:cdk:stack-tags",
+      "data": [
+        {
+          "key": "Environment",
+          "value": "Hackathon"
+        },
+        {
+          "key": "ManagedBy",
+          "value": "CDK"
+        },
+        {
+          "key": "Project",
+          "value": "EcoSense"
+        }
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Sns/AlertEmail": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SnsAlertEmailFAF4559C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Sns/AlertTopicArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SnsAlertTopicArnA294B9A9"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Sns/AlertTopicName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SnsAlertTopicName62489AD1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/DeliveryStream": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageDeliveryStream3E016EA5"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/GlueDatabase": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageGlueDatabase41461820"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/GlueTable": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageGlueTable61C49462"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/AthenaWorkgroup": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageAthenaWorkgroupEE6A428D"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/BucketName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageBucketName37AA483C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/BucketArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageBucketArn98D89688"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/FirehoseName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageFirehoseName568A5F61"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/AthenaWorkgroupName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageAthenaWorkgroupNameC06694EA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/AthenaQueryAllRecent": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageAthenaQueryAllRecent6E0F0DE1"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/AthenaQueryCritical": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageAthenaQueryCritical6C22B9BA"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/IoTCore/AlertRule": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IoTCoreAlertRule5876D619"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/IoTCore/ArchiveRule": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IoTCoreArchiveRuleB649EBF0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/IoTCore/AlertRuleName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IoTCoreAlertRuleName0E31CA7B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/IoTCore/ArchiveRuleName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IoTCoreArchiveRuleName20863FA0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/IoTCore/MqttTopic": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "IoTCoreMqttTopic727D6442"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/CDKMetadata/Default": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "CDKMetadata"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...App.synth in aws-cdk-lib...",
+        "C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:542 (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:69840)",
+        "Kernel.invoke (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:54245)"
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Sns/AlertTopic/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SnsAlertTopic70753634"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Topic2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/ArchiveBucket/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageArchiveBucketC50834F0"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Bucket2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
+        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Sns/AlertTopic/team@example.com/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SnsAlertTopicteamexamplecomCDF3846F"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addSubscription in aws-cdk-lib...",
+        "C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:542 (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:69840)",
+        "Kernel.invoke (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:54245)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Sns/AlertTopic/Policy/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SnsAlertTopicPolicy84EE841C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addToResourcePolicy in aws-cdk-lib...",
+        "C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:542 (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:69840)",
+        "Kernel.invoke (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:54245)",
+        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
+        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
+        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)"
+      ]
+    }
+  ]
+}

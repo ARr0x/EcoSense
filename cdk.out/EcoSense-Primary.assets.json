@@ -1,0 +1,20 @@
+{
+  "version": "53.0.0",
+  "files": {
+    "38d2a10e3e0a3d61086e7b7e946027a1b8176349d103a84a67a5a82a65e87a36": {
+      "displayName": "EcoSense-Primary Template",
+      "source": {
+        "path": "EcoSense-Primary.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "836005851254-us-east-1-31399475": {
+          "bucketName": "ecosense-cdk-836005851254-us-east-1",
+          "objectKey": "38d2a10e3e0a3d61086e7b7e946027a1b8176349d103a84a67a5a82a65e87a36.json",
+          "region": "us-east-1"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}
