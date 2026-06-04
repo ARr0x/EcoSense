@@ -4,7 +4,7 @@ simulator_mqtt.py — EcoSense IoT MQTT Simulator
 
 Génère et publie des télémétries de capteurs vers AWS IoT Core via MQTT mTLS.
 Lit la configuration depuis .env à la racine du dépôt.
-Supporte le failover régional automatique us-east-1 ↔ us-east-2.
+Supporte le failover régional automatique us-east-1 ↔ us-west-2.
 """
 
 import argparse
@@ -15,10 +15,11 @@ import random
 import ssl
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+import boto3
 import paho.mqtt.client as mqtt
 from dotenv import find_dotenv, load_dotenv
 
@@ -50,6 +51,11 @@ class Config:
     forced_region: Optional[str] = None
     verbose: bool = False
     mqtt_debug: bool = False
+    # Route 53 health check IDs (outputs du stack EcoSense-Route53)
+    # Si vides, le polling Route 53 est désactivé (failover réactif uniquement).
+    hc_id_primary: str = ""
+    hc_id_secondary: str = ""
+    health_poll_bursts: int = 30  # vérifier Route 53 toutes les N salves (~30s)
 
     @property
     def active_region(self) -> str:
@@ -60,6 +66,10 @@ class Config:
         if self.active_region == self.primary_region:
             return self.iot_endpoint_primary
         return self.iot_endpoint_secondary
+
+    @property
+    def route53_enabled(self) -> bool:
+        return self.multi_region and bool(self.hc_id_primary or self.hc_id_secondary)
 
 
 # =============================================================================
@@ -106,16 +116,19 @@ def load_config(args: argparse.Namespace) -> Config:
         iot_endpoint_primary=primary_endpoint,
         iot_endpoint_secondary=os.getenv("IOT_ENDPOINT_SECONDARY", ""),
         primary_region=os.getenv("CDK_DEFAULT_REGION", "us-east-1"),
-        secondary_region=os.getenv("SECONDARY_REGION", "us-east-2"),
+        secondary_region=os.getenv("SECONDARY_REGION", "us-west-2"),
         client_id=os.getenv("MQTT_CLIENT_ID", "ecosense-simulator"),
         sensor_count=_validated_sensor_count(args.sensor_count or int(os.getenv("SENSOR_COUNT", "500"))),
         burst_size=args.burst_size or int(os.getenv("BURST_SIZE", "50")),
         burst_interval=args.burst_interval or float(os.getenv("BURST_INTERVAL", "1.0")),
-            critical_rate=_validated_rate(args.critical_rate or float(os.getenv("CRITICAL_RATE", "0.1"))),
+        critical_rate=_validated_rate(args.critical_rate or float(os.getenv("CRITICAL_RATE", "0.1"))),
         multi_region=os.getenv("MULTI_REGION", "true").lower() == "true",
         forced_region=args.region,
         verbose=args.verbose,
         mqtt_debug=args.mqtt_debug,
+        hc_id_primary=os.getenv("ROUTE53_HC_ID_PRIMARY", ""),
+        hc_id_secondary=os.getenv("ROUTE53_HC_ID_SECONDARY", ""),
+        health_poll_bursts=int(os.getenv("HEALTH_POLL_BURSTS", "30")),
     )
 
 
@@ -252,6 +265,40 @@ def generate_payload(sensor_id: int, region: str, critical_rate: float) -> dict:
 
 
 # =============================================================================
+# ROUTE 53 HEALTH CHECK
+# =============================================================================
+
+
+def is_region_healthy(hc_id: str) -> bool:
+    """Interroge Route 53 et retourne True si la région est healthy.
+
+    Critère : moins de la moitié des health checkers rapportent un échec.
+    Retourne True si hc_id est vide ou en cas d'erreur boto3 (fail-open).
+    """
+    if not hc_id:
+        return True
+    try:
+        r53 = boto3.client("route53", region_name="us-east-1")
+        resp = r53.get_health_check_status(HealthCheckId=hc_id)
+        observations = resp.get("HealthCheckObservations", [])
+        if not observations:
+            return True
+        failures = sum(
+            1 for obs in observations
+            if obs.get("StatusReport", {}).get("Status", "").startswith("Failure")
+        )
+        healthy = failures < len(observations) / 2
+        log.debug(
+            f"[Route53] hc={hc_id[:8]}… {len(observations) - failures}/{len(observations)} OK"
+            f" → {'healthy' if healthy else 'UNHEALTHY'}"
+        )
+        return healthy
+    except Exception as exc:
+        log.debug(f"[Route53] Impossible de vérifier {hc_id[:8]}…: {exc}")
+        return True  # fail-open : on ne bascule pas sur une erreur boto3
+
+
+# =============================================================================
 # COMMANDES
 # =============================================================================
 
@@ -361,14 +408,27 @@ def cmd_run(config: Config) -> int:
     log.info(f"  Capteurs  : {config.sensor_count}")
     log.info(f"  Burst     : {config.burst_size} msgs / {config.burst_interval}s")
     log.info(f"  Critical  : {config.critical_rate * 100:.0f}%")
+    log.info(f"  Route 53  : {'activé (poll /' + str(config.health_poll_bursts) + ' salves)' if config.route53_enabled else 'désactivé (ROUTE53_HC_ID_* non configurés)'}")
     log.info("=" * 60)
 
     if not verify_certificates(config):
         return 1
 
+    # --- Sélection initiale de la région via Route 53 ---
+    initial_region = config.active_region
+    if config.route53_enabled:
+        log.info("[Route53] Vérification de la santé des régions au démarrage...")
+        primary_healthy = is_region_healthy(config.hc_id_primary)
+        secondary_healthy = is_region_healthy(config.hc_id_secondary)
+        log.info(f"[Route53] Primary ({config.primary_region}) : {'✓ healthy' if primary_healthy else '✗ UNHEALTHY'}")
+        log.info(f"[Route53] Secondary ({config.secondary_region}) : {'✓ healthy' if secondary_healthy else '✗ UNHEALTHY'}")
+        if not primary_healthy and secondary_healthy:
+            log.warning(f"[Route53] Primaire indisponible → démarrage sur {config.secondary_region}")
+            initial_region = config.secondary_region
+
     state = {
         "connected": False,
-        "active_region": config.active_region,
+        "active_region": initial_region,
         "published": 0,
         "failed": 0,
     }
@@ -389,8 +449,13 @@ def cmd_run(config: Config) -> int:
         config, on_connect_cb=on_connect, on_disconnect_cb=on_disconnect
     )
 
-    log.info(f"Connexion à {config.active_endpoint}:8883...")
-    if not connect_mqtt(client, config.active_endpoint):
+    initial_endpoint = (
+        config.iot_endpoint_secondary
+        if initial_region == config.secondary_region
+        else config.iot_endpoint_primary
+    )
+    log.info(f"Connexion à {initial_endpoint}:8883...")
+    if not connect_mqtt(client, initial_endpoint):
         log.error("Impossible de se connecter")
         return 1
 
@@ -399,6 +464,7 @@ def cmd_run(config: Config) -> int:
         while True:
             burst_id += 1
 
+            # --- Failover réactif : MQTT déconnecté ---
             if not state["connected"]:
                 client.loop_stop()
 
@@ -416,10 +482,11 @@ def cmd_run(config: Config) -> int:
                     log.error("Connexion perdue — basculement multi-région...")
                     log.warning(f"Basculement vers {other_region}")
                     state["active_region"] = other_region
+                    config.forced_region = other_region
                     reconnect_endpoint = other_endpoint
                 else:
                     log.error("Connexion perdue — reconnexion (multi-région désactivé)...")
-                    reconnect_endpoint = config.active_endpoint
+                    reconnect_endpoint = config.iot_endpoint_primary
 
                 client = build_mqtt_client(
                     config, on_connect_cb=on_connect, on_disconnect_cb=on_disconnect
@@ -431,6 +498,23 @@ def cmd_run(config: Config) -> int:
                     cmd_run._backoff = min(backoff * 2, 120)
                     continue
                 cmd_run._backoff = 1
+
+            # --- Failover proactif : polling Route 53 toutes les N salves ---
+            if config.route53_enabled and burst_id % config.health_poll_bursts == 0:
+                active_hc = (
+                    config.hc_id_primary
+                    if state["active_region"] == config.primary_region
+                    else config.hc_id_secondary
+                )
+                if not is_region_healthy(active_hc):
+                    log.warning(
+                        f"[Route53] {state['active_region']} signalé UNHEALTHY"
+                        f" — basculement proactif avant déconnexion MQTT"
+                    )
+                    client.loop_stop()
+                    client.disconnect()
+                    state["connected"] = False
+                    continue
 
             sensor_ids = random.sample(
                 range(1, config.sensor_count + 1),
@@ -493,7 +577,7 @@ Examples:
   python simulator/simulator_mqtt.py --check
   python simulator/simulator_mqtt.py --dry-run -v
   python simulator/simulator_mqtt.py --burst-size 10
-  python simulator/simulator_mqtt.py --region us-east-2
+  python simulator/simulator_mqtt.py --region us-west-2
 
 Hiérarchie de configuration:
   CLI flags > .env > valeurs par défaut
@@ -511,7 +595,7 @@ Hiérarchie de configuration:
     )
 
     parser.add_argument(
-        "--region", choices=["us-east-1", "us-east-2"], help="Force a specific region"
+        "--region", choices=["us-east-1", "us-west-2"], help="Force a specific region"
     )
     parser.add_argument("--burst-size", type=int, help="Override BURST_SIZE from .env")
     parser.add_argument(

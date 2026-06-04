@@ -4,7 +4,7 @@ app.py — EcoSense CDK Orchestrateur
 
 Déploie l'infrastructure sur deux régions :
   - us-east-1 (Primary)
-  - us-east-2 (Secondary)
+  - us-west-2 (Secondary)
 
 Stacks par région :
   1. SnsStack     — SNS topic alertes CRITICAL + abonnés Email/SMS
@@ -22,6 +22,7 @@ import os
 import aws_cdk as cdk
 from dotenv import find_dotenv, load_dotenv
 from stacks.ecosense_stack import EcoSenseStack
+from stacks.route53_stack import Route53Stack
 
 env_path = find_dotenv(usecwd=True)
 if env_path:
@@ -35,7 +36,7 @@ if not AWS_ACCOUNT_ID:
     )
 
 PRIMARY_REGION = os.environ.get("CDK_DEFAULT_REGION", "us-east-1")
-SECONDARY_REGION = os.environ.get("SECONDARY_REGION", "us-east-2")
+SECONDARY_REGION = os.environ.get("SECONDARY_REGION", "us-west-2")
 MULTI_REGION = os.environ.get("MULTI_REGION", "true").lower() == "true"
 
 ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "")
@@ -46,6 +47,10 @@ FIREHOSE_BUFFER_MB = int(os.environ.get("FIREHOSE_BUFFER_MB", "5"))
 
 # 300 = 5 min prod, 20 = démo
 FIRST_INTERVAL_SEC = int(os.environ.get("FIRST_INTERVAL_SEC", "300"))
+
+# Renseignés automatiquement par `make deploy-route53` (outputs des stacks régionaux)
+HEALTH_URL_PRIMARY = os.environ.get("HEALTH_URL_PRIMARY", "")
+HEALTH_URL_SECONDARY = os.environ.get("HEALTH_URL_SECONDARY", "")
 
 
 app = cdk.App()
@@ -76,5 +81,23 @@ for stack in filter(None, [primary, secondary]):
     cdk.Tags.of(stack).add("Project", "EcoSense")
     cdk.Tags.of(stack).add("ManagedBy", "CDK")
     cdk.Tags.of(stack).add("Environment", "Hackathon")
+
+# Stack Route 53 — déployé séparément après les stacks régionaux (make deploy-route53)
+# Les URLs sont récupérées automatiquement depuis les outputs CloudFormation.
+if HEALTH_URL_PRIMARY and HEALTH_URL_SECONDARY:
+    route53_stack = Route53Stack(
+        app,
+        "EcoSense-Route53",
+        primary_health_url=HEALTH_URL_PRIMARY,
+        secondary_health_url=HEALTH_URL_SECONDARY,
+        primary_region=PRIMARY_REGION,
+        secondary_region=SECONDARY_REGION,
+        env=cdk.Environment(account=AWS_ACCOUNT_ID, region=PRIMARY_REGION),
+        synthesizer=cdk.CliCredentialsStackSynthesizer(
+            file_assets_bucket_name=f"ecosense-cdk-{AWS_ACCOUNT_ID}-{PRIMARY_REGION}",
+        ),
+    )
+    cdk.Tags.of(route53_stack).add("Project", "EcoSense")
+    cdk.Tags.of(route53_stack).add("ManagedBy", "CDK")
 
 app.synth()

@@ -7,7 +7,7 @@ Lit la configuration depuis .env à la racine du dépôt.
 
 Usage:
     python simulator/provision_certs.py us-east-1
-    python simulator/provision_certs.py us-east-2 --force
+    python simulator/provision_certs.py us-west-2 --force
 """
 
 import argparse
@@ -25,7 +25,7 @@ from dotenv import find_dotenv, load_dotenv
 
 AWS_IOT_ROOT_CA_URL = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
 POLICY_NAME_TEMPLATE = "EcoSenseSimulatorPolicy-{region}"
-SUPPORTED_REGIONS = ["us-east-1", "us-east-2"]
+SUPPORTED_REGIONS = ["us-east-1", "us-west-2"]
 
 logging.basicConfig(
     level=logging.INFO,
@@ -187,14 +187,14 @@ def main():
         epilog="""\
 Examples:
   python simulator/provision_certs.py us-east-1
-  python simulator/provision_certs.py us-east-2 --force
+  python simulator/provision_certs.py us-west-2 --force
   python simulator/provision_certs.py us-east-1 -v
         """,
     )
     parser.add_argument(
         "region",
         choices=SUPPORTED_REGIONS,
-        help="Région AWS (us-east-1 ou us-east-2)",
+        help="Région AWS (us-east-1 ou us-west-2)",
     )
     parser.add_argument(
         "--force",

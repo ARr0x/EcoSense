@@ -9,7 +9,7 @@
     },
     "EcoSense-Primary": {
       "type": "aws:cloudformation:stack",
-      "environment": "aws://836005851254/us-east-1",
+      "environment": "aws://825804607046/us-east-1",
       "properties": {
         "templateFile": "EcoSense-Primary.template.json",
         "terminationProtection": false,
@@ -19,7 +19,7 @@
           "Project": "EcoSense"
         },
         "validateOnSynth": false,
-        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-836005851254-us-east-1/38d2a10e3e0a3d61086e7b7e946027a1b8176349d103a84a67a5a82a65e87a36.json",
+        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-825804607046-us-east-1/57733d6f922ec0aa914cb1e9fa5956e8e4f65177dfe18c8f6d785c4bb614e8e6.json",
         "additionalDependencies": [
           "EcoSense-Primary.assets"
         ]
@@ -29,6 +29,63 @@
       ],
       "additionalMetadataFile": "EcoSense-Primary.metadata.json",
       "displayName": "EcoSense-Primary"
+    },
+    "EcoSense-Secondary.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "EcoSense-Secondary.assets.json"
+      }
+    },
+    "EcoSense-Secondary": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://825804607046/us-east-2",
+      "properties": {
+        "templateFile": "EcoSense-Secondary.template.json",
+        "terminationProtection": false,
+        "tags": {
+          "Environment": "Hackathon",
+          "ManagedBy": "CDK",
+          "Project": "EcoSense"
+        },
+        "validateOnSynth": false,
+        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-825804607046-us-east-2/86ff948820ed65435874c5dba4deb2d97f44e74e259466bf4045e3293ff516b2.json",
+        "additionalDependencies": [
+          "EcoSense-Secondary.assets"
+        ]
+      },
+      "dependencies": [
+        "EcoSense-Secondary.assets"
+      ],
+      "additionalMetadataFile": "EcoSense-Secondary.metadata.json",
+      "displayName": "EcoSense-Secondary"
+    },
+    "EcoSense-Route53.assets": {
+      "type": "cdk:asset-manifest",
+      "properties": {
+        "file": "EcoSense-Route53.assets.json"
+      }
+    },
+    "EcoSense-Route53": {
+      "type": "aws:cloudformation:stack",
+      "environment": "aws://825804607046/us-east-1",
+      "properties": {
+        "templateFile": "EcoSense-Route53.template.json",
+        "terminationProtection": false,
+        "tags": {
+          "ManagedBy": "CDK",
+          "Project": "EcoSense"
+        },
+        "validateOnSynth": false,
+        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-825804607046-us-east-1/21e80654dd0e3dada7d43b5a0c83056c51d9c35f4ab839bdf033c227201971f7.json",
+        "additionalDependencies": [
+          "EcoSense-Route53.assets"
+        ]
+      },
+      "dependencies": [
+        "EcoSense-Route53.assets"
+      ],
+      "additionalMetadataFile": "EcoSense-Route53.metadata.json",
+      "displayName": "EcoSense-Route53"
     },
     "Tree": {
       "type": "cdk:tree",

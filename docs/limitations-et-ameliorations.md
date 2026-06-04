@@ -13,7 +13,8 @@ Ces limitations sont imposées par l'environnement et ne reflètent pas des choi
 | **CDK bootstrap bloqué** | `cdk bootstrap` interdit, le bucket d'assets CDK doit être créé manuellement | `make bootstrap-bucket` recrée le bucket avant chaque déploiement |
 | **LabRole imposé** | Impossible de créer des rôles IAM via CDK — tous les services utilisent le même rôle partagé `LabRole` | Référence hardcodée `arn:aws:iam::{account}:role/LabRole` dans tous les stacks |
 | **Session qui expire** | À chaque restart du lab, les credentials et endpoints IoT changent | `make lab-restart` recrée le bucket CDK, redéploie et re-provisionne les certificats |
-| **Route 53 indisponible** | Pas de DNS failover automatique entre régions | Failover entièrement côté client dans le simulateur (détection de déconnexion + reconnexion) |
+| **Route 53 domaine non enregistrable** | Impossible d'enregistrer un domaine DNS dans Learner Lab → pas de DNS failover MQTT (CNAME vers IoT Core impossible via mTLS/SNI) | Route 53 health checks HTTPS sur Lambda Function URLs. Le simulateur interroge l'API Route 53 (`get_health_check_status`) pour basculer proactivement. |
+| **us-east-2 inaccessible** | `s3:CreateBucket` et `cloudformation:CreateStack` bloqués pour voclabs en us-east-2 | Région secondaire migrée sur `us-west-2` (S3, Lambda, IoT Core, CloudFormation tous disponibles) |
 | **KMS customer-managed keys bloqué** | Impossible de créer des clés KMS dédiées | Chiffrement SSE-S3 (AWS managed keys) à la place |
 | **NestedStack interdit** | Certains patterns CDK avancés ne sont pas supportés | Architecture à stacks séparés sans imbrication |
 | **VPC endpoints limités** | Configuration réseau avancée non disponible | Services sur endpoints publics, sécurisés uniquement par IAM et TLS |
@@ -30,9 +31,9 @@ Ces limitations sont imposées par l'environnement et ne reflètent pas des choi
 
 | | Actuel (Lab) | Production |
 |---|---|---|
-| **Mécanisme failover** | Client-side : le simulateur détecte la déconnexion MQTT et bascule manuellement vers l'autre région | Route 53 Failover Policy + Health Checks → basculement DNS automatique en 2–3 min (RTO) |
+| **Mécanisme failover** | Proactif : Route 53 health checks HTTPS + polling simulateur toutes les 30s. Réactif : détection déconnexion MQTT → bascule immédiat. | Route 53 Failover Policy + DNS automatique en 2–3 min (RTO) — impossible car CNAME vers IoT Core incompatible avec mTLS/SNI |
 | **Réplication des données** | Aucune — les deux régions sont totalement indépendantes | S3 Cross-Region Replication (CRR) → RPO ~15 secondes |
-| **Perte de données en cas de panne** | Données perdues entre la panne et le basculement manuel | Quasi-nulle (15s max, le temps du dernier flush Firehose non répliqué) |
+| **Perte de données en cas de panne** | Données perdues entre la détection Route 53 et le basculement (~30s max) | Quasi-nulle (15s max, le temps du dernier flush Firehose non répliqué) |
 
 ### IAM et sécurité
 

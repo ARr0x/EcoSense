@@ -3,11 +3,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     },
@@ -37,11 +37,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -54,11 +54,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -71,11 +71,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -88,11 +88,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -105,11 +105,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -122,11 +122,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -139,11 +139,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -156,11 +156,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -173,11 +173,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -190,11 +190,28 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Storage/FirehoseArn": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "StorageFirehoseArnD9CB8606"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -207,11 +224,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -224,11 +241,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -241,11 +258,112 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/QuartierState": [
+    {
+      "type": "aws:cdk:hasPhysicalName",
+      "data": {
+        "Ref": "AlertAggregatorQuartierStateADA908CB"
+      }
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/PendingAlerts": [
+    {
+      "type": "aws:cdk:hasPhysicalName",
+      "data": {
+        "Ref": "AlertAggregatorPendingAlerts903FBF49"
+      }
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/AlertsQueueUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorAlertsQueueUrl28CA8593"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/AlertsDLQUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorAlertsDLQUrlCE951B0A"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/IngestFnName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorIngestFnNameA985CE66"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/FlushFnName": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorFlushFnNameF347C8FC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/FlushSchedulerDLQUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorFlushSchedulerDLQUrlB46C0372"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -258,11 +376,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -275,11 +393,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -292,11 +410,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -309,11 +427,11 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -326,11 +444,28 @@
     {
       "type": "aws:cdk:creationStack",
       "data": [
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Health/HealthCheckUrl": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthHealthCheckUrl8ADAA859"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -344,9 +479,9 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...App.synth in aws-cdk-lib...",
-        "C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:542 (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:5429)",
-        "Kernel._Kernel_ensureSync (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:69840)",
-        "Kernel.invoke (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:54245)"
+        "/tmp/tmp31c_gge6/lib/program.js:1:542 (/tmp/tmp31c_gge6/lib/program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (/tmp/tmp31c_gge6/lib/program.js:1:69840)",
+        "Kernel.invoke (/tmp/tmp31c_gge6/lib/program.js:1:54245)"
       ]
     }
   ],
@@ -359,11 +494,11 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Topic2 in aws-cdk-lib...",
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -377,30 +512,228 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...new Bucket2 in aws-cdk-lib...",
-        "Kernel._Kernel_create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:61224)",
-        "Kernel.create (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:51955)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
   ],
-  "/EcoSense-Primary/Sns/AlertTopic/team@example.com/Resource": [
+  "/EcoSense-Primary/AlertAggregator/AlertsDLQ/Resource": [
     {
       "type": "aws:cdk:logicalId",
-      "data": "SnsAlertTopicteamexamplecomCDF3846F"
+      "data": "AlertAggregatorAlertsDLQE32ECC5C"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/AlertsQueue/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorAlertsQueue51B2F780"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/QuartierState/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorQuartierStateADA908CB"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/PendingAlerts/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorPendingAlerts903FBF49"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Table2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/FlushSchedulerDLQ/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorFlushSchedulerDLQ921CE4AC"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Queue2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/FlushFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorFlushFnFFE46F52"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/IngestFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorIngestFn870CAD34"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Health/HealthFn/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthHealthFn11B333DF"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Function2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Health/HealthFn/invoke-function-url": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthHealthFninvokefunctionurl98C379C4"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addFunctionUrl in aws-cdk-lib...",
+        "/tmp/tmp31c_gge6/lib/program.js:1:542 (/tmp/tmp31c_gge6/lib/program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (/tmp/tmp31c_gge6/lib/program.js:1:69840)",
+        "Kernel.invoke (/tmp/tmp31c_gge6/lib/program.js:1:54245)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)"
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Health/HealthFn/invoke-function": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthHealthFninvokefunctionA3714CFD"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addFunctionUrl in aws-cdk-lib...",
+        "/tmp/tmp31c_gge6/lib/program.js:1:542 (/tmp/tmp31c_gge6/lib/program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (/tmp/tmp31c_gge6/lib/program.js:1:69840)",
+        "Kernel.invoke (/tmp/tmp31c_gge6/lib/program.js:1:54245)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)"
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Health/HealthFnErrorAlarm/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthHealthFnErrorAlarm2D9C2C64"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...new Alarm2 in aws-cdk-lib...",
+        "Kernel._Kernel_create (/tmp/tmp31c_gge6/lib/program.js:1:61224)",
+        "Kernel.create (/tmp/tmp31c_gge6/lib/program.js:1:51955)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Sns/AlertTopic/mateo.nicoud@ynov.com/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "SnsAlertTopicmateonicoudynovcom054B3808"
     },
     {
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.addSubscription in aws-cdk-lib...",
-        "C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:542 (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:5429)",
-        "Kernel._Kernel_ensureSync (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:69840)",
-        "Kernel.invoke (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:54245)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)",
+        "/tmp/tmp31c_gge6/lib/program.js:1:542 (/tmp/tmp31c_gge6/lib/program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (/tmp/tmp31c_gge6/lib/program.js:1:69840)",
+        "Kernel.invoke (/tmp/tmp31c_gge6/lib/program.js:1:54245)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
         "...node internals..."
       ]
     }
@@ -414,12 +747,48 @@
       "type": "aws:cdk:creationStack",
       "data": [
         "...WrappedClass.addToResourcePolicy in aws-cdk-lib...",
-        "C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:542 (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:5429)",
-        "Kernel._Kernel_ensureSync (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:69840)",
-        "Kernel.invoke (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:54245)",
-        "KernelHost.processRequest (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:212065)",
-        "KernelHost.run (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211120)",
-        "Immediate._onImmediate (C:\\Users\\FRED-A~1\\AppData\\Local\\Temp\\tmpy862eevv\\lib\\program.js:1:211164)"
+        "/tmp/tmp31c_gge6/lib/program.js:1:542 (/tmp/tmp31c_gge6/lib/program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (/tmp/tmp31c_gge6/lib/program.js:1:69840)",
+        "Kernel.invoke (/tmp/tmp31c_gge6/lib/program.js:1:54245)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)"
+      ]
+    }
+  ],
+  "/EcoSense-Primary/AlertAggregator/IngestFn/SqsEventSource:EcoSensePrimaryAlertAggregatorAlertsQueue494C925E/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "AlertAggregatorIngestFnSqsEventSourceEcoSensePrimaryAlertAggregatorAlertsQueue494C925EB0F2484B"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addEventSource in aws-cdk-lib...",
+        "/tmp/tmp31c_gge6/lib/program.js:1:542 (/tmp/tmp31c_gge6/lib/program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (/tmp/tmp31c_gge6/lib/program.js:1:69840)",
+        "Kernel.invoke (/tmp/tmp31c_gge6/lib/program.js:1:54245)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)"
+      ]
+    }
+  ],
+  "/EcoSense-Primary/Health/HealthFn/FunctionUrl/Resource": [
+    {
+      "type": "aws:cdk:logicalId",
+      "data": "HealthHealthFnFunctionUrlFFFA00DE"
+    },
+    {
+      "type": "aws:cdk:creationStack",
+      "data": [
+        "...WrappedClass.addFunctionUrl in aws-cdk-lib...",
+        "/tmp/tmp31c_gge6/lib/program.js:1:542 (/tmp/tmp31c_gge6/lib/program.js:1:5429)",
+        "Kernel._Kernel_ensureSync (/tmp/tmp31c_gge6/lib/program.js:1:69840)",
+        "Kernel.invoke (/tmp/tmp31c_gge6/lib/program.js:1:54245)",
+        "KernelHost.processRequest (/tmp/tmp31c_gge6/lib/program.js:1:212065)",
+        "KernelHost.run (/tmp/tmp31c_gge6/lib/program.js:1:211120)",
+        "Immediate._onImmediate (/tmp/tmp31c_gge6/lib/program.js:1:211164)",
+        "...node internals..."
       ]
     }
   ]

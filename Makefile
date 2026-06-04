@@ -17,7 +17,7 @@ export PATH := $(CURDIR)/.venv/bin:$(PATH)
 
 # Variables (override possible : make deploy REGION=us-east-2)
 REGION            ?= $(if $(CDK_DEFAULT_REGION),$(CDK_DEFAULT_REGION),us-east-1)
-SECONDARY_REGION  ?= us-east-2
+SECONDARY_REGION  ?= us-west-2
 MULTI_REGION      ?= false
 ACCOUNT_ID        ?= $(AWS_ACCOUNT_ID)
 
@@ -129,7 +129,6 @@ lab-restart: ## Après chaque lab restart : bucket CDK + deploy + certs
 bootstrap-bucket: ## (Re)créer le(s) bucket(s) CDK — supprime et recrée si accès refusé
 	@$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET) BUCKET_REGION=$(REGION)
 	@if [ "$(MULTI_REGION)" = "true" ]; then \
-		echo "MULTI_REGION=true — tentative pour $(SECONDARY_REGION) (peut échouer en Learner Lab)"; \
 		$(MAKE) -s _reset-bucket BUCKET=$(CDK_BUCKET_SECONDARY) BUCKET_REGION=$(SECONDARY_REGION); \
 	fi
 
@@ -137,11 +136,11 @@ bootstrap-bucket: ## (Re)créer le(s) bucket(s) CDK — supprime et recrée si a
 .PHONY: _reset-bucket
 _reset-bucket:
 	@echo "Reset bucket s3://$(BUCKET)..."
-	@if aws s3api head-bucket --bucket $(BUCKET) --region $(BUCKET_REGION); then \
+	@if aws s3api head-bucket --bucket $(BUCKET) --region $(BUCKET_REGION) 2>/dev/null; then \
 		aws s3 rm s3://$(BUCKET) --recursive --region $(BUCKET_REGION); \
 		aws s3api delete-bucket --bucket $(BUCKET) --region $(BUCKET_REGION); \
 	else \
-		echo "Bucket $(BUCKET) absent, création..."; \
+		echo "  Bucket $(BUCKET) absent, création..."; \
 	fi
 	@aws s3 mb s3://$(BUCKET) --region $(BUCKET_REGION)
 	@echo "Bucket s3://$(BUCKET) prêt"
@@ -161,7 +160,10 @@ _check-env:
 
 .PHONY: synth
 synth: ## Générer les templates CloudFormation (validation)
-	cdk synth
+	JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=1 cdk synth $(STACKS_ALL) 2>&1 \
+		| grep -v "Supply a stack id" \
+		| grep -v "feature flags are not configured"
+	@echo "Synthèse OK — templates dans cdk.out/"
 
 .PHONY: diff
 diff: ## Voir les changements depuis le dernier deploy (toutes régions actives)
@@ -196,6 +198,47 @@ deploy-secondary: ## Déployer uniquement les stacks Secondary (MULTI_REGION=tru
 	    echo "  2. .env correctement rempli (IOT_ENDPOINT_*, ACCOUNT_ID...)"; \
 	    echo "  3. pip install -r iac/requirements.txt"; \
 	    exit 1; }
+
+.PHONY: health-urls
+health-urls: ## Afficher les URLs health check des deux régions (après make deploy)
+	@echo "=== Health Check URLs ==="
+	@PRIMARY=$$(aws cloudformation describe-stacks --stack-name EcoSense-Primary \
+		--region $(REGION) \
+		--query "Stacks[0].Outputs[?contains(OutputKey,'HealthCheckUrl')].OutputValue" \
+		--output text 2>/dev/null); \
+	SECONDARY=$$(aws cloudformation describe-stacks --stack-name EcoSense-Secondary \
+		--region $(SECONDARY_REGION) \
+		--query "Stacks[0].Outputs[?contains(OutputKey,'HealthCheckUrl')].OutputValue" \
+		--output text 2>/dev/null); \
+	echo "  HEALTH_URL_PRIMARY   = $$PRIMARY"; \
+	echo "  HEALTH_URL_SECONDARY = $$SECONDARY"
+
+.PHONY: deploy-route53
+deploy-route53: _check-env ## Déployer les health checks Route 53 (après make deploy MULTI_REGION=true)
+	@# Priorité 1 : HEALTH_URL_* déjà dans .env (strip guillemets éventuels)
+	@PRIMARY_URL=$$(printenv HEALTH_URL_PRIMARY | tr -d '"'); \
+	SECONDARY_URL=$$(printenv HEALTH_URL_SECONDARY | tr -d '"'); \
+	if [ -z "$$PRIMARY_URL" ] || [ -z "$$SECONDARY_URL" ]; then \
+		echo "HEALTH_URL_* absentes — récupération depuis CloudFormation..."; \
+		PRIMARY_URL=$$(aws cloudformation describe-stacks --stack-name EcoSense-Primary \
+			--region $(REGION) \
+			--query "Stacks[0].Outputs[?contains(OutputKey,'HealthCheckUrl')].OutputValue" \
+			--output text 2>/dev/null); \
+		SECONDARY_URL=$$(aws cloudformation describe-stacks --stack-name EcoSense-Secondary \
+			--region $(SECONDARY_REGION) \
+			--query "Stacks[0].Outputs[?contains(OutputKey,'HealthCheckUrl')].OutputValue" \
+			--output text 2>/dev/null); \
+	fi; \
+	if [ -z "$$PRIMARY_URL" ] || [ -z "$$SECONDARY_URL" ]; then \
+		echo "Erreur : URLs introuvables — déployer d'abord : make deploy MULTI_REGION=true"; \
+		exit 1; \
+	fi; \
+	echo "Déploiement Route 53 health checks :"; \
+	echo "  Primary  : $$PRIMARY_URL"; \
+	echo "  Secondary: $$SECONDARY_URL"; \
+	JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION=1 \
+	HEALTH_URL_PRIMARY=$$PRIMARY_URL HEALTH_URL_SECONDARY=$$SECONDARY_URL \
+		cdk deploy EcoSense-Route53 --require-approval never
 
 
 .PHONY: empty-buckets

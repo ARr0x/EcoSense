@@ -54,7 +54,7 @@ Ou manuellement :
 
 ```bash
 aws s3 mb s3://ecosense-cdk-{ACCOUNT_ID}-us-east-1 --region us-east-1
-aws s3 mb s3://ecosense-cdk-{ACCOUNT_ID}-us-east-2 --region us-east-2
+aws s3 mb s3://ecosense-cdk-{ACCOUNT_ID}-us-west-2 --region us-west-2
 ```
 
 Remplacer `{ACCOUNT_ID}` par la valeur de `AWS_ACCOUNT_ID` dans `.env`.
@@ -119,7 +119,7 @@ Usage : python simulator/provision_certs.py <region> [--force] [-v]
 
 | Argument | Requis | Description |
 |---|---|---|
-| `region` | oui | `us-east-1` ou `us-east-2` |
+| `region` | oui | `us-east-1` ou `us-west-2` |
 | `--force` | non | Recrée le certificat même si un existant est détecté |
 | `-v` | non | Mode verbose (niveau DEBUG) |
 
@@ -139,11 +139,11 @@ Le script appelle l'API IoT Core (`CreateKeysAndCertificate`), crée la policy `
 ```bash
 # Provisionner les deux régions
 python simulator/provision_certs.py us-east-1
-python simulator/provision_certs.py us-east-2
+python simulator/provision_certs.py us-west-2
 
 # Recréer (en cas de rotation ou perte de la clé privée)
 python simulator/provision_certs.py us-east-1 --force
-python simulator/provision_certs.py us-east-2 --force -v
+python simulator/provision_certs.py us-west-2 --force -v
 ```
 
 Si un certificat existe déjà et que `--force` n'est pas fourni, le script affiche un avertissement et sort sans modifier les fichiers existants.
@@ -164,7 +164,7 @@ Usage : python simulator/simulator_mqtt.py [OPTIONS]
 |---|---|---|
 | `--check` | — | Teste la connexion TLS et sort (exit 0 = OK, 1 = erreur) |
 | `--dry-run` | — | Génère des payloads sans publier sur MQTT |
-| `--region {us-east-1,us-east-2}` | valeur `.env` | Force une région spécifique |
+| `--region {us-east-1,us-west-2}` | valeur `.env` | Force une région spécifique |
 | `--burst-size INT` | `BURST_SIZE` (.env) ou 50 | Nombre de messages par salve |
 | `--burst-interval FLOAT` | `BURST_INTERVAL` (.env) ou 1.0 | Délai entre salves en secondes |
 | `--sensor-count INT` | `SENSOR_COUNT` (.env) ou 500 | Nombre de capteurs simulés |
@@ -189,7 +189,7 @@ Mode publication (défaut) — se connecte à la région active, publie des salv
 python simulator/simulator_mqtt.py --check
 
 # Vérification sur la région secondaire
-python simulator/simulator_mqtt.py --check --region us-east-2
+python simulator/simulator_mqtt.py --check --region us-west-2
 
 # Prévisualiser les payloads sans publier
 python simulator/simulator_mqtt.py --dry-run -v
@@ -198,7 +198,7 @@ python simulator/simulator_mqtt.py --dry-run -v
 python simulator/simulator_mqtt.py
 
 # Forcer la région secondaire
-python simulator/simulator_mqtt.py --region us-east-2
+python simulator/simulator_mqtt.py --region us-west-2
 
 # Simulation de pic de pollution (taux CRITICAL élevé, salves rapides)
 python simulator/simulator_mqtt.py --burst-size 10 --critical-rate 0.5 --burst-interval 0.5
@@ -288,7 +288,7 @@ aws sns publish \
 
 ```bash
 aws iot describe-endpoint --endpoint-type iot:Data-ATS --region us-east-1
-aws iot describe-endpoint --endpoint-type iot:Data-ATS --region us-east-2
+aws iot describe-endpoint --endpoint-type iot:Data-ATS --region us-west-2
 ```
 
 ### Contenu S3

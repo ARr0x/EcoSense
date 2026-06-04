@@ -17,9 +17,11 @@ Deux régions déployées de manière identique et indépendante :
 | Région | Rôle |
 |---|---|
 | `us-east-1` | Primary |
-| `us-east-2` | Failover |
+| `us-west-2` | Failover |
 
-Le failover est **côté client uniquement** : le simulateur détecte la déconnexion MQTT et bascule sur la région secondaire. Il n'existe pas de mécanisme de routage AWS entre les deux régions.
+Le failover fonctionne en deux couches complémentaires :
+- **Proactif (Route 53)** : le simulateur interroge les health checks Route 53 toutes les 30 salves. Si la région active est signalée *unhealthy*, il bascule proprement avant toute déconnexion MQTT.
+- **Réactif (MQTT)** : si la connexion MQTT tombe malgré tout, le simulateur détecte la déconnexion et bascule immédiatement sur l'autre région.
 
 ---
 
@@ -30,9 +32,9 @@ Le point d'entrée `iac/app.py` instancie deux stacks de type `EcoSenseStack`, u
 | Stack CDK | Région |
 |---|---|
 | `EcoSense-Primary` | `us-east-1` |
-| `EcoSense-Secondary` | `us-east-2` |
+| `EcoSense-Secondary` | `us-west-2` |
 
-Chaque stack contient quatre constructs instanciés dans cet ordre :
+Chaque stack contient cinq constructs instanciés dans cet ordre :
 
 | Construct | Fichier | Rôle |
 |---|---|---|
@@ -40,6 +42,13 @@ Chaque stack contient quatre constructs instanciés dans cet ordre :
 | `Storage` | `iac/stacks/storage_stack.py` | Firehose, S3, Glue, Athena |
 | `AlertAggregator` | `iac/stacks/alert_aggregator_stack.py` | SQS, DynamoDB, Lambda Ingest/Flush |
 | `IoTCore` | `iac/stacks/iot_core_stack.py` | Topic Rules SQL |
+| `Health` | `iac/stacks/health_stack.py` | Lambda Function URL + alarme CloudWatch |
+
+Un stack global supplémentaire est déployé séparément :
+
+| Stack CDK | Région | Rôle |
+|---|---|---|
+| `EcoSense-Route53` | `us-east-1` (global) | 2 Route 53 health checks HTTPS |
 
 Dépendances entre constructs (passage de références CDK, pas d'exports cross-stack) :
 
@@ -48,6 +57,8 @@ Sns ─────────────────────────�
                                       ↓
 Storage ──────────────────→ AlertAggregator ──→ IoTCore
          delivery_stream_name          alerts_queue_url
+
+Health  (indépendant — expose Function URL pour Route 53)
 ```
 
 ---
@@ -427,7 +438,7 @@ Exemple : `metropole/centre/S-001/telemetry`
 | `value` | float | voir seuils ci-dessous |
 | `unit` | string | `ppm`, `µg/m³`, `%`, `dB` |
 | `status` | string | `NORMAL`, `CRITICAL` |
-| `region` | string | `us-east-1`, `us-east-2` |
+| `region` | string | `us-east-1`, `us-west-2` |
 | `quartier` | string | `centre`, `nord`, `sud`, `est`, `ouest` |
 | `timestamp` | int | epoch secondes UTC |
 
@@ -445,7 +456,7 @@ Exemple : `metropole/centre/S-001/telemetry`
 
 ## Ressources par région
 
-`{REGION}` = `us-east-1` ou `us-east-2` — `{ACCOUNT_ID}` = valeur de `AWS_ACCOUNT_ID`.
+`{REGION}` = `us-east-1` ou `us-west-2` — `{ACCOUNT_ID}` = valeur de `AWS_ACCOUNT_ID`.
 
 | Ressource | Nom | Service |
 |---|---|---|
@@ -457,6 +468,9 @@ Exemple : `metropole/centre/S-001/telemetry`
 | Table buffer alertes | `ecosense-pending-alerts-{REGION}` | DynamoDB |
 | Lambda Ingest | `ecosense-ingest-{REGION}` | Lambda |
 | Lambda Flush | `ecosense-flush-{REGION}` | Lambda |
+| Lambda Health | `ecosense-health-{REGION}` | Lambda |
+| Function URL health | `https://{id}.lambda-url.{REGION}.on.aws/` | Lambda URL |
+| Alarme erreurs health | `ecosense-health-errors-{REGION}` | CloudWatch |
 | Bucket archives | `ecosense-archives-{ACCOUNT_ID}-{REGION}` | S3 |
 | Delivery stream | `ecosense-delivery-{REGION}` | Kinesis Firehose |
 | Base de données Glue | `ecosense_db` | Glue |
@@ -477,7 +491,9 @@ Exemple : `metropole/centre/S-001/telemetry`
 
 **S3 RemovalPolicy.RETAIN** — le bucket d'archives n'est pas supprimé par `cdk destroy`. Les objets expirent après 30 jours via la règle lifecycle. Une suppression manuelle est nécessaire pour libérer l'espace avant ce délai.
 
-**Failover client-side** — les deux régions sont entièrement indépendantes. Le basculement est géré par le simulateur uniquement ; il n'y a pas de DNS failover, de Route 53 health check, ni de Global Accelerator.
+**Failover Route 53** — le stack `EcoSense-Route53` crée deux health checks HTTPS (type `HTTPS`, port 443, intervalle 30s, seuil 3 échecs consécutifs) pointant vers les Lambda Function URLs de chaque région. Le simulateur interroge ces health checks via `boto3` toutes les 30 salves pour basculer proactivement. Variables requises dans `.env` : `ROUTE53_HC_ID_PRIMARY`, `ROUTE53_HC_ID_SECONDARY`. Si absentes, seul le failover réactif MQTT est actif.
+
+**Régions disponibles en Learner Lab** — seules `us-east-1` (Primary) et `us-west-2` (Secondary) permettent `s3:CreateBucket` via les credentials voclabs. `us-east-2`, `us-west-1`, `eu-west-1` et `ap-*` sont bloqués (SCP).
 
 **Chicken-and-egg sur les endpoints IoT** — les variables `IOT_ENDPOINT_PRIMARY` et `IOT_ENDPOINT_SECONDARY` ne peuvent être renseignées qu'après un premier `cdk deploy`. Déployer l'infra, récupérer les endpoints avec `make iot-endpoint`, puis les copier dans `.env` avant de lancer le simulateur.
 

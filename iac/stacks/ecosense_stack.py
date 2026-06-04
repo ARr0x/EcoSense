@@ -6,12 +6,14 @@ Stack parent qui orchestre les constructs par région :
   - StorageStack          : Kinesis Firehose + S3 + Athena
   - AlertAggregatorStack  : SQS + DynamoDB + Lambda Ingest/Flush (backoff par quartier)
   - IoTCoreStack          : Topic Rules SQL (CRITICAL → SQS, ALL → Firehose)
+  - HealthStack           : Lambda Function URL — endpoint HTTPS pour Route 53 health checks
 """
 
 import aws_cdk as cdk
 from constructs import Construct
 
 from stacks.alert_aggregator_stack import AlertAggregatorStack
+from stacks.health_stack import HealthStack
 from stacks.iot_core_stack import IoTCoreStack
 from stacks.sns_stack import SnsStack
 from stacks.storage_stack import StorageStack
@@ -54,3 +56,5 @@ class EcoSenseStack(cdk.Stack):
             alert_queue_url=aggregator.alerts_queue.queue_url,
             delivery_stream_name=storage.delivery_stream.ref,
         )
+
+        HealthStack(self, "Health")
