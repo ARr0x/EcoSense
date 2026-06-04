@@ -92,7 +92,8 @@
 
 ### Frédéric Chapot
 #### Travaux réalisés
-- À compléter.
+- Travail sur la présentations.
+- Slide Finops.
 
 ### Arthur Lacombe
 #### Travaux réalisés
@@ -110,7 +111,7 @@
 
 ### Frédéric Chapot
 #### Travaux réalisés
-- À compléter.
+- Relecture & Visuel de la présentation. 
 
 ### Arthur Lacombe
 #### Travaux réalisés
