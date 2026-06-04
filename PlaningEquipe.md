@@ -57,8 +57,11 @@
 
 ### Matéo Nicoud
 #### Travaux réalisés
-- À compléter.
-
+- Initialisation de la stack makefile, documentation architecture du dépot.
+- Réalisation de multiples tests de déploiement AWS CDK.
+- Validation du fonctionnement de l'infrastructure déployée.
+- Tests et mise au point du script de simulation des équipements IoT.
+- Recherche et prise en main des services AWS Glue et Amazon Athena.
 
 
 
@@ -67,7 +70,7 @@
 
 ### Frédéric Chapot
 #### Travaux réalisés
-- Modification du drowIO pour l'architecture Ecosens, creation de la page : [Architecture cible](docs/architecture-cible.md).
+- Modification du drawIO pour l'architecture Ecosens, creation de la page : [Architecture cible](docs/architecture-cible.md).
 - Implementation de PNG dans les docs.
 - Reflexion Finops sur l'architecture multi-regions.
 - Première mouture du pptx de présentation.
@@ -79,7 +82,8 @@
 
 ### Matéo Nicoud
 #### Travaux réalisés
-- À compléter.
+- Création drawIO système de mailing.
+- Création du système de mailing complet.
 
 
 
@@ -96,7 +100,8 @@
 
 ### Matéo Nicoud
 #### Travaux réalisés
-- À compléter.
+- Fix du multizone, travail sur l'accessibilité du doiploiement, et du README.md
+- Préparation pour la démo technique
 
 
 
@@ -113,4 +118,6 @@
 
 ### Matéo Nicoud
 #### Travaux réalisés
-- À compléter.
+- Préparation questions réponses
+- Entrainement présentation
+- Présentation

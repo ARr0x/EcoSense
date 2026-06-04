@@ -20,8 +20,10 @@ Deux régions déployées de manière identique et indépendante :
 | `us-west-2` | Failover |
 
 Le failover fonctionne en deux couches complémentaires :
-- **Proactif (Route 53)** : le simulateur interroge les health checks Route 53 toutes les 30 salves. Si la région active est signalée *unhealthy*, il bascule proprement avant toute déconnexion MQTT.
+- **Proactif (Route 53)** : le simulateur interroge les health checks Route 53 toutes les 5 s. Si la région active est signalée *unhealthy*, il bascule proprement avant toute déconnexion MQTT. RTO : ~10 s.
 - **Réactif (MQTT)** : si la connexion MQTT tombe malgré tout, le simulateur détecte la déconnexion et bascule immédiatement sur l'autre région.
+
+Pour l'explication complète des raisons (incompatibilité mTLS/SNI, domaine non enregistrable, restrictions IAM) et le détail du mécanisme de remplacement, voir [`docs/limitations-et-ameliorations.md`](limitations-et-ameliorations.md#pourquoi-le-failover-dns-route-53-est-impossible-sur-iot-core).
 
 ---
 

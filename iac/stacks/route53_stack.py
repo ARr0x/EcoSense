@@ -51,8 +51,8 @@ class Route53Stack(cdk.Stack):
                 fully_qualified_domain_name=fqdn_primary,
                 port=443,
                 resource_path="/",
-                request_interval=10,
-                failure_threshold=1,
+                request_interval=30,
+                failure_threshold=3,
                 enable_sni=True,
             ),
             health_check_tags=[
@@ -76,8 +76,8 @@ class Route53Stack(cdk.Stack):
                 fully_qualified_domain_name=fqdn_secondary,
                 port=443,
                 resource_path="/",
-                request_interval=10,
-                failure_threshold=1,
+                request_interval=30,
+                failure_threshold=3,
                 enable_sni=True,
             ),
             health_check_tags=[

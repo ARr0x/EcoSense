@@ -46,7 +46,8 @@ make deploy           # déploie Primary + Secondary + Route 53 health checks
 **Étape 3 — Renseigner les valeurs post-deploy dans `.env`**
 
 ```bash
-make post-deploy      # affiche toutes les valeurs à copier
+make post-deploy      # affiche toutes les valeurs à copier dans le .env
+make deploy-route53   # Met à jour les healthchecks
 ```
 
 Copier ces 4 variables dans `.env` :

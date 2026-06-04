@@ -279,6 +279,9 @@ def is_region_healthy(hc_id: str) -> bool:
         return True
     try:
         r53 = boto3.client("route53", region_name="us-east-1")
+        inverted = r53.get_health_check(HealthCheckId=hc_id)[
+            "HealthCheck"
+        ]["HealthCheckConfig"].get("Inverted", False)
         resp = r53.get_health_check_status(HealthCheckId=hc_id)
         observations = resp.get("HealthCheckObservations", [])
         if not observations:
@@ -288,8 +291,11 @@ def is_region_healthy(hc_id: str) -> bool:
             if obs.get("StatusReport", {}).get("Status", "").startswith("Failure")
         )
         healthy = failures < len(observations) / 2
+        if inverted:
+            healthy = not healthy
         log.debug(
             f"[Route53] hc={hc_id[:8]}… {len(observations) - failures}/{len(observations)} OK"
+            f"{' (INVERSÉ)' if inverted else ''}"
             f" → {'healthy' if healthy else 'UNHEALTHY'}"
         )
         return healthy

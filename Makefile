@@ -354,7 +354,7 @@ sns-test: ## Publier un test direct sur SNS (skip IoT, vérifie email)
 # ==============================================================================
 
 .PHONY: post-deploy
-post-deploy: ## Afficher toutes les valeurs à copier dans .env après make deploy
+post-deploy: ## Afficher les endpoints à copier dans .env + URLs health check (info)
 	@echo ""
 	@echo "Copier ces valeurs dans .env :"
 	@echo "────────────────────────────────────────────────────────"
@@ -367,6 +367,16 @@ post-deploy: ## Afficher toutes les valeurs à copier dans .env après make depl
 		echo "IOT_ENDPOINT_SECONDARY=$$SECONDARY_EP"; \
 	fi
 	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		PRIMARY_HEALTH=$$(aws cloudformation describe-stacks --stack-name EcoSense-Primary \
+			--region $(REGION) \
+			--query "Stacks[0].Outputs[?contains(OutputKey,'HealthCheckUrl')].OutputValue" \
+			--output text 2>/dev/null); \
+		SECONDARY_HEALTH=$$(aws cloudformation describe-stacks --stack-name EcoSense-Secondary \
+			--region $(SECONDARY_REGION) \
+			--query "Stacks[0].Outputs[?contains(OutputKey,'HealthCheckUrl')].OutputValue" \
+			--output text 2>/dev/null); \
+		echo "HEALTH_URL_PRIMARY=$$PRIMARY_HEALTH"; \
+		echo "HEALTH_URL_SECONDARY=$$SECONDARY_HEALTH"; \
 		PRIMARY_HC=$$(aws cloudformation describe-stacks --stack-name EcoSense-Route53 \
 			--region $(REGION) \
 			--query "Stacks[0].Outputs[?OutputKey=='PrimaryHealthCheckId'].OutputValue" \
@@ -454,9 +464,8 @@ clean: ## Repo fresh pour démo : supprime venv, certs, cdk.out, caches — gard
 	@echo ""
 	@echo "  ── From scratch (première installation) ─────────────────"
 	@echo "  make bootstrap        # venv + dépendances + bucket CDK"
-	@echo "  make deploy           # déployer Primary + Secondary"
-	@echo "  make deploy-route53   # déployer les health checks Route 53"
-	@echo "  make iot-endpoint     # vérifier/copier les endpoints dans .env"
+	@echo "  make deploy           # déployer Primary + Secondary+ health checks Route 53"
+	@echo "  make post-deploy      # vérifier/copier les endpoints dans .env"
 	@echo "  make certs            # provisionner les certificats X.509"
 	@echo "  make check            # tester la connexion MQTT"
 	@echo "  make run              # lancer le simulateur"

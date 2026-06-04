@@ -13,7 +13,7 @@ Ces limitations sont imposées par l'environnement et ne reflètent pas des choi
 | **CDK bootstrap bloqué** | `cdk bootstrap` interdit, le bucket d'assets CDK doit être créé manuellement | `make bootstrap-bucket` recrée le bucket avant chaque déploiement |
 | **LabRole imposé** | Impossible de créer des rôles IAM via CDK — tous les services utilisent le même rôle partagé `LabRole` | Référence hardcodée `arn:aws:iam::{account}:role/LabRole` dans tous les stacks |
 | **Session qui expire** | À chaque restart du lab, les credentials et endpoints IoT changent | `make lab-restart` recrée le bucket CDK, redéploie et re-provisionne les certificats |
-| **Route 53 domaine non enregistrable** | Impossible d'enregistrer un domaine DNS dans Learner Lab → pas de DNS failover MQTT (CNAME vers IoT Core incompatible avec mTLS/SNI) | Route 53 health checks HTTPS sur Lambda Function URLs proxy. Le simulateur interroge `GetHealthCheckStatus` pour basculer proactivement (voir [infrastructure.md](infrastructure.md)) |
+| **Route 53 failover DNS impossible** | Trois blocages cumulés empêchent le DNS failover natif (voir détail ci-dessous) | Route 53 health checks HTTPS sur Lambda Function URLs proxy. Le simulateur interroge `GetHealthCheckStatus` pour basculer proactivement |
 | **us-east-2 inaccessible** | `s3:CreateBucket` et `cloudformation:CreateStack` bloqués pour `voclabs` en us-east-2 (contrairement aux consignes) | Région secondaire déployée sur `us-west-2` — tous les services nécessaires disponibles |
 | **KMS customer-managed keys bloqué** | Impossible de créer des clés KMS dédiées | Chiffrement SSE-S3 (AWS managed keys) |
 | **NestedStack interdit** | Certains patterns CDK avancés ne sont pas supportés | Architecture à stacks séparés sans imbrication |
@@ -22,6 +22,101 @@ Ces limitations sont imposées par l'environnement et ne reflètent pas des choi
 | **QuickSight indisponible** | Pas de dashboards natifs | Requêtes Athena manuelles via la console |
 | **GuardDuty désactivé** | Pas de détection d'anomalies automatisée | — |
 | **CloudTrail limité** | Audit des actions AWS non configurable | — |
+
+---
+
+## Pourquoi le failover DNS Route 53 est impossible sur IoT Core
+
+### Ce que serait le failover idéal
+
+En production standard, Route 53 Failover Policy bascule automatiquement le DNS :
+
+```
+Capteurs  ──DNS──►  iot.ecosense.example.com
+                          │
+                    Route 53 Failover Policy
+                    ┌─────┴──────┐
+                    ▼            ▼ (si primary UNHEALTHY)
+             PRIMARY            SECONDARY
+      iot.us-east-1.aws    iot.us-west-2.aws
+```
+
+Quand Route 53 détecte que la région primaire est indisponible, il met à jour l'enregistrement DNS. Les capteurs, à leur prochaine reconnexion, obtiennent automatiquement l'IP de la région secondaire — sans aucun changement côté client. RTO : 2-3 minutes.
+
+### Blocage n°1 — Incompatibilité mTLS / SNI
+
+IoT Core utilise **mTLS** (mutual TLS) : le serveur s'authentifie avec un certificat TLS émis par Amazon pour le domaine exact `*.iot.us-east-1.amazonaws.com`. Voici ce qui se passe si on place un CNAME Route 53 devant :
+
+```
+Étape 1 — Résolution DNS
+  Capteur demande : iot.ecosense.example.com
+  Route 53 répond : xxx.iot.us-east-1.amazonaws.com   ✓
+
+Étape 2 — Handshake TLS (champ SNI)
+  Capteur annonce dans le SNI : "iot.ecosense.example.com"
+  Serveur IoT Core présente   : certificat "*.iot.us-east-1.amazonaws.com"
+
+Étape 3 — Vérification TLS côté client
+  SNI ≠ certificat  →  TLS HANDSHAKE FAILED  →  connexion impossible  ✗
+```
+
+Le SNI (Server Name Indication) est l'extension TLS qui indique au serveur quel certificat présenter. Si le nom annoncé par le client ne correspond pas au certificat du serveur, la connexion est rejetée. Ce n'est pas un bug — c'est la sécurité TLS qui fonctionne correctement.
+
+### Blocage n°2 — Pas de domaine personnalisé disponible
+
+AWS IoT Core supporte les **custom domains** : on peut configurer `iot.ecosense.example.com` comme endpoint officiel avec un certificat TLS valide. Le CNAME Route 53 fonctionnerait alors. Mais cette fonctionnalité requiert trois étapes, toutes bloquées :
+
+| Étape | Prérequis | Blocage Learner Lab |
+|---|---|---|
+| 1. Enregistrer un domaine | Route 53 Domain Registration | **Interdit** en AWS Academy |
+| 2. Créer un certificat ACM | Domaine valide + validation DNS/email | Impossible sans domaine |
+| 3. Créer une IoT Domain Configuration | Domaine + certificat ACM | Impossible sans étapes 1 et 2 |
+
+### Blocage n°3 — Restrictions IAM
+
+Même avec un domaine disponible, configurer un custom domain IoT Core nécessite des **actions IAM** (`iot:CreateDomainConfiguration`, `iot:UpdateDomainConfiguration`) qui requièrent un rôle dédié. En AWS Academy, la création de rôles IAM personnalisés est strictement interdite — seul `LabRole` est utilisable, et ces permissions n'y figurent pas.
+
+### Récapitulatif
+
+| Blocage | Raison technique | Levable hors Learner Lab ? |
+|---|---|---|
+| SNI mismatch mTLS | Protocole TLS standard | Oui, avec custom domain IoT Core |
+| Pas de domaine enregistrable | Restriction AWS Academy | Oui (~13 USD/an sur Route 53) |
+| Certificat ACM impossible | Dépend du domaine | Oui, automatique avec ACM |
+| IoT Domain Configuration bloquée | Création de rôles IAM interdite | Oui, avec un rôle dédié |
+
+### Ce qui est implémenté à la place
+
+Route 53 est utilisé comme **registre de santé distribué** — pas comme DNS. Ses 15 points de présence mondiaux sondent une Lambda Function URL HTTPS toutes les 10 secondes. Le simulateur interroge l'API Route 53 (`GetHealthCheckStatus`) et bascule lui-même son endpoint MQTT. C'est du **failover applicatif côté client**.
+
+```
+  Route 53 health checkers (×15 régions AWS)
+          │  HTTPS GET /  toutes les 10 s
+          ▼
+  Lambda ecosense-health-{region}  →  {"status": "ok"}
+  (proxy de santé — ne touche pas IoT Core)
+
+  Simulateur  ──boto3──►  Route 53 API  (GetHealthCheckStatus, toutes les 5 s)
+       │                       │
+       │              retourne Healthy / UNHEALTHY
+       │
+       ├─ HEALTHY   ──MQTT/mTLS──►  IoT Core us-east-1  (port 8883)
+       └─ UNHEALTHY ──MQTT/mTLS──►  IoT Core us-west-2  (port 8883)
+```
+
+### Déclencher le failover (démo)
+
+```bash
+HC_ID_PRIMARY=$(grep ROUTE53_HC_ID_PRIMARY .env | cut -d= -f2)
+
+# Basculement proactif (~10 s)
+aws route53 update-health-check --health-check-id $HC_ID_PRIMARY --inverted
+
+# Rétablissement
+aws route53 update-health-check --health-check-id $HC_ID_PRIMARY --no-inverted
+```
+
+> **Alternative lente (~5-10 min)** : désactiver le certificat IoT Core (`aws iot update-certificate --new-status INACTIVE`). AWS IoT ne coupe pas les sessions MQTT actives immédiatement — la vérification du certificat n'intervient qu'à la prochaine tentative de connexion.
 
 ---
 
@@ -72,7 +167,7 @@ Ces limitations sont imposées par l'environnement et ne reflètent pas des choi
 
 | # | Composant | Description | Impact |
 |---|---|---|---|
-| B-01 | `simulator/simulator_mqtt.py` — `is_region_healthy()` | La fonction lit les statuts bruts des observations Route 53 mais n'applique pas le flag `Inverted` du health check. Si un health check est inversé manuellement (démo), le simulateur ne voit pas le changement. | Le failover proactif via inversion de health check ne fonctionne pas — utiliser la désactivation de certificat à la place |
+| ~~B-01~~ | ~~`simulator/simulator_mqtt.py` — `is_region_healthy()`~~ | Corrigé — `get_health_check()` est maintenant appelé pour lire le flag `Inverted` et l'appliquer au résultat. | — |
 
 ---
 
@@ -95,8 +190,7 @@ Ces points sont indépendants des contraintes AWS Academy.
 | # | Composant | Amélioration |
 |---|---|---|
 | 1 | `lambdas/flush/handler.py` | Ajouter `on_failure=SqsDestination(dlq)` sur Lambda Flush dans CDK — les crashes internes (timeout, exception non catchée) ne sont actuellement pas capturés par la DLQ |
-| 2 | `simulator/simulator_mqtt.py` — `is_region_healthy()` | Corriger le bug B-01 : lire le flag `Inverted` via `get_health_check()` et l'appliquer au résultat des observations |
-| 3 | `iac/stacks/alert_aggregator_stack.py` | À la clôture du cycle (Flush sans nouvelles alertes), purger les `PendingAlerts` du quartier avec `batch_write_item` — évite que les alertes d'un incident passé parasitent l'historique d'un incident futur |
+| 2 | `iac/stacks/alert_aggregator_stack.py` | À la clôture du cycle (Flush sans nouvelles alertes), purger les `PendingAlerts` du quartier avec `batch_write_item` — évite que les alertes d'un incident passé parasitent l'historique d'un incident futur |
 
 ### Priorité moyenne
 
