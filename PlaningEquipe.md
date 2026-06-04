@@ -52,7 +52,8 @@
 
 ### Arthur Lacombe
 #### Travaux réalisés
-- À compléter.
+- Validation du fonctionnement de l'infrastructure déployée.
+- Réalisation de test deploiment 
 
 ### Matéo Nicoud
 #### Travaux réalisés
@@ -73,7 +74,8 @@
 
 ### Arthur Lacombe
 #### Travaux réalisés
-- À compléter.
+- realisation de l'infrastructure en interface graphique. 
+- reflexion Finops sur l'architecture multi-regions. 
 
 ### Matéo Nicoud
 #### Travaux réalisés
@@ -90,7 +92,7 @@
 
 ### Arthur Lacombe
 #### Travaux réalisés
-- À compléter.
+- implemenation de la securité du projet et dans la documentation.
 
 ### Matéo Nicoud
 #### Travaux réalisés
