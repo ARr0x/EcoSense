@@ -371,38 +371,85 @@ Nouveau flux (post-bascule) continue dans us-east-2
 - **Athena** : CCU-based concurrency (typiquement 24 CCU = $30/jour)
 
 ### 3. Coûts (estimation mensuelle, architecture double-région avec S3 CRR)
+
+Hypothèses de calcul : 500 capteurs, 50 messages/s, 10 % CRITICAL
+→ ~13 M messages CRITICAL/mois/région, ~130 M messages totaux/mois/région.
+
 ```
-PER REGION (Primaire + us-east-2):
+INGESTION & ARCHIVAGE — PAR RÉGION (× 2) :
 
-  IoT Core (rules ingestion)      : 300 USD × 2 = 600 USD
-  Firehose (5MB/300s buffering)   : 150 USD × 2 = 300 USD
-  S3 Standard (30j retention)     : 100 USD × 2 = 200 USD
-  SNS (alertes emails)            : 25 USD × 2 = 50 USD
-  ────────────────────────────────────────────────────
-  SUBTOTAL (duplex)                            : 1,150 USD
+  IoT Core — connectivité (500 devices)    :  21 USD × 2 =   42 USD
+  IoT Core — messages (130 M/mois)         : 130 USD × 2 =  260 USD
+  IoT Core — Topic Rules (2 règles)        :  22 USD × 2 =   44 USD
+  Kinesis Firehose (26 Go/mois)            :   1 USD × 2 =    2 USD
+  S3 Standard — stockage (30j, ~15 Go)     :   1 USD × 2 =    2 USD
+  ─────────────────────────────────────────────────────────────────
+  SUBTOTAL ingestion (duplex)                           :  350 USD
 
-S3 CROSS-REGION REPLICATION (CRR):
-  S3 CRR Transfer (Region 1 → us-east-2)      : 100 USD
-  S3 Replica storage (us-east-2)              : 100 USD
-  ────────────────────────────────────────────────────
-  SUBTOTAL (CRR)                              : 200 USD
+CHAÎNE D'ALERTING — PAR RÉGION (× 2) :
+  (SQS → Lambda Ingest → DynamoDB → EventBridge → Lambda Flush → SNS)
 
-SHARED (analytics, 1 instance):
-  Athena (requêtes analytique)    : 200 USD
-  Glue (crawler + catalog)        : 50 USD
-  QuickSight (dashboards)         : 150 USD
-  Route 53 (health checks + DNS)  : 30 USD
-  ────────────────────────────────
-  SUBTOTAL (shared)                           : 430 USD
+  SQS AlertsQueue (13 M msgs × ~3 appels)  :  15 USD × 2 =   30 USD
+  Lambda Ingest (1,3 M inv., 128 MB, ~2 s) :   6 USD × 2 =   12 USD
+  Lambda Flush  (43 K inv., 128 MB, ~5 s)  :   1 USD × 2 =    2 USD
+  DynamoDB QuartierState (PAY_PER_REQUEST)  :   1 USD × 2 =    2 USD
+  DynamoDB PendingAlerts (13 M écritures)  :  17 USD × 2 =   34 USD
+  EventBridge Scheduler (43 K/mois)        :   0 USD × 2 =    0 USD
+  SNS — emails groupés avec backoff        :   0 USD × 2 =    0 USD
+    (< 6 000 emails/mois/région → Free Tier)
+  ─────────────────────────────────────────────────────────────────
+  SUBTOTAL alerting (duplex)                            :   80 USD
 
-────────────────────────────────────────────
-TOTAL MENSUEL                                 ≈ 1,780 USD
+S3 CROSS-REGION REPLICATION (CRR) :
+  S3 CRR Transfer (Region 1 → us-east-2)               :  100 USD
+  S3 Replica storage (us-east-2)                        :  100 USD
+  ─────────────────────────────────────────────────────────────────
+  SUBTOTAL (CRR)                                        :  200 USD
 
-✅ S3 avec CRR (haute dispo) : RPO = 15 sec
-✅ Pas de Glacier (rétention 30j seulement)
-✅ Data transfer inter-région : ~50-100 USD/mois (estimé, non inclus)
-✅ Peu d'alertes SNS → coût minimal
+SHARED (analytics, 1 instance) :
+  Athena (requêtes analytique, ~200 To scannés) :        200 USD
+  Glue (crawler + catalog)                      :         50 USD
+  QuickSight (dashboards)                       :        150 USD
+  Route 53 (health checks + DNS)                :         30 USD
+  ─────────────────────────────────────────────────────────────────
+  SUBTOTAL (shared)                                     :  430 USD
+
+═════════════════════════════════════════════════════════════════
+TOTAL MENSUEL                                         ≈ 1,060 USD
+═════════════════════════════════════════════════════════════════
+
+Notes :
+  ✅ S3 avec CRR (haute dispo) : RPO = 15 sec
+  ✅ Pas de Glacier (rétention 30j seulement)
+  ✅ SNS email quasi-gratuit grâce au backoff exponentiel Lambda Flush
+     (1 email immédiat + emails groupés toutes les 5 min → 12 h max)
+  ✅ DynamoDB PAY_PER_REQUEST : coût nul si pas d'alertes CRITICAL
+  ⚠️  IoT Core messaging reste le poste dominant (~30 % du total)
+  ⚠️  Data transfer inter-région : ~50-100 USD/mois (non inclus)
 ```
+
+#### Détail SNS / mailing
+
+Le coût SNS email est intentionnellement faible grâce à la logique de backoff implémentée dans `lambdas/flush/handler.py` :
+
+| Événement | Action Lambda Flush | Emails envoyés |
+|---|---|---|
+| 1ère alerte quartier | Mail immédiat | 1 par quartier |
+| Persistance 5 min | Mail groupé (toutes alertes en attente) | 1 par quartier |
+| Persistance 10 min, 20 min… | Doublement de l'intervalle (max 12h) | 1 par cycle |
+| Résolution | Purge `PendingAlerts` | 0 |
+
+Sans backoff (envoi direct à chaque alerte CRITICAL), 13 M emails/mois coûteraient **~260 USD/mois** par région.
+Avec backoff, on descend à < 6 000 emails/mois → **Free Tier SNS** (1 M emails/mois gratuits).
+
+#### Détail DynamoDB
+
+| Table | Clé | Volume | Coût dominant |
+|---|---|---|---|
+| `QuartierState` | `quartier` (5 items) | 43 K lectures + 43 K écritures (Lambda Flush/mois) | < 1 USD/mois |
+| `PendingAlerts` | `quartier` + `alert_ts` | 13 M écritures (1 par alerte CRITICAL) + TTL 24h | ~17 USD/mois/région |
+
+Les deux tables utilisent `BillingMode.PAY_PER_REQUEST` : aucun coût fixe, facturation à l'usage.
 
 ### 4. Monitoring & Alerting
 **CloudWatch Metrics à tracker :**
