@@ -1,110 +1,86 @@
-# Scripts et commandes
+# Référence commandes — EcoSense
 
-Référence des commandes manuelles sans Makefile. Pour le workflow standard, utiliser `make help`.
+Commandes manuelles pour les opérations courantes. Le workflow standard est dans le [README](../README.md).
+
+Activer le venv avant toute commande Python ou CDK :
+```bash
+source .venv/bin/activate
+# ou simplement utiliser make — le Makefile l'active automatiquement via PATH
+```
 
 ---
 
-## Prérequis
-
-**Venv** — activer avant toute commande Python ou CDK :
+## Environnement local
 
 ```bash
+make install    # crée .venv + installe iac/requirements.txt et simulator/requirements.txt
+                # aucun appel AWS — peut tourner sans credentials
+```
+
+Équivalent manuel :
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
-# ou créer + installer si absent
-python -m venv .venv
 pip install -r iac/requirements.txt -r simulator/requirements.txt
 ```
-
-**Fichier `.env`** — copier `.env.example` et renseigner au minimum :
-
-```bash
-cp .env.example .env
-# Variables obligatoires avant cdk deploy :
-#   AWS_ACCOUNT_ID
-#   ALERT_EMAIL (optionnel mais recommandé)
-#
-# Variables à renseigner après cdk deploy :
-#   IOT_ENDPOINT_PRIMARY
-#   IOT_ENDPOINT_SECONDARY
-```
-
-**AWS credentials** — les commandes supposent un profil AWS configuré avec les droits nécessaires (déploiement CDK, IoT, SNS, S3, CloudWatch).
 
 ---
 
 ## CDK
 
-Toutes les commandes CDK s'exécutent depuis la **racine du dépôt** (`cdk.json` y est situé).
+Toutes les commandes CDK s'exécutent depuis la **racine du dépôt** (`cdk.json` s'y trouve).
 
-### Dépendances
+### Bucket CDK (workaround Learner Lab)
 
-```bash
-pip install -r iac/requirements.txt
-```
-
-### Buckets CDK assets (Learner Lab)
-
-L'environnement AWS Academy bloque le bootstrap CDK standard. Utiliser la cible Makefile dédiée :
+`cdk bootstrap` standard est bloqué en AWS Academy — les buckets d'assets CDK sont créés manuellement :
 
 ```bash
-make bootstrap-bucket   # crée ou recrée les buckets CDK
-```
+make bootstrap-bucket   # supprime + recrée les buckets si nécessaire
 
-Ou manuellement :
-
-```bash
+# Ou manuellement :
 aws s3 mb s3://ecosense-cdk-{ACCOUNT_ID}-us-east-1 --region us-east-1
 aws s3 mb s3://ecosense-cdk-{ACCOUNT_ID}-us-west-2 --region us-west-2
 ```
 
-Remplacer `{ACCOUNT_ID}` par la valeur de `AWS_ACCOUNT_ID` dans `.env`.
+> `make bootstrap` = `make install` + `make bootstrap-bucket` en une commande.
 
-### Générer les templates CloudFormation
+### Générer les templates CloudFormation sans déployer
 
 ```bash
 cdk synth
 ```
 
-### Déploiement
-
-```bash
-# Toutes les stacks actives (selon MULTI_REGION dans .env)
-cdk deploy --all --require-approval never --import-existing-resources
-
-# Région primaire uniquement
-cdk deploy EcoSense-Primary --require-approval never --import-existing-resources
-
-# Région secondaire uniquement
-cdk deploy EcoSense-Secondary --require-approval never --import-existing-resources
-```
-
-`--require-approval never` supprime la confirmation interactive. `--import-existing-resources` évite les conflits si des ressources existent déjà dans le compte.
-
-### Voir les changements depuis le dernier déploiement
+### Voir les changements avant deploy
 
 ```bash
 cdk diff
 cdk diff EcoSense-Primary
 ```
 
-### Destruction
+### Déployer un stack spécifique
 
 ```bash
-make destroy   # vide les buckets + détruit les stacks (confirmation interactive)
+cdk deploy EcoSense-Primary
+cdk deploy EcoSense-Secondary
+cdk deploy EcoSense-Route53
 ```
 
-Ou manuellement :
+### Déployer tous les stacks actifs
 
 ```bash
-# Vider le bucket d'archives (pas de versioning, rm simple suffit)
+cdk deploy --all --require-approval never --import-existing-resources
+```
+
+`--import-existing-resources` évite les conflits si des ressources existent déjà.
+
+### Détruire l'infrastructure
+
+```bash
+# Vider les buckets d'archives avant destroy (RemovalPolicy.RETAIN — non supprimés par CDK)
 aws s3 rm s3://ecosense-archives-{ACCOUNT_ID}-us-east-1 --recursive
+aws s3 rm s3://ecosense-archives-{ACCOUNT_ID}-us-west-2 --recursive
 
-# Détruire les stacks
 cdk destroy --all --force
-
-# Supprimer les buckets résiduels (RemovalPolicy.RETAIN)
-aws s3 rb s3://ecosense-archives-{ACCOUNT_ID}-us-east-1
-aws s3 rb s3://ecosense-cdk-{ACCOUNT_ID}-us-east-1
 ```
 
 ---
@@ -114,39 +90,50 @@ aws s3 rb s3://ecosense-cdk-{ACCOUNT_ID}-us-east-1
 ### provision_certs.py
 
 ```
-Usage : python simulator/provision_certs.py <region> [--force] [-v]
+python simulator/provision_certs.py <region> [--force] [-v]
 ```
 
-| Argument | Requis | Description |
-|---|---|---|
-| `region` | oui | `us-east-1` ou `us-west-2` |
-| `--force` | non | Recrée le certificat même si un existant est détecté |
-| `-v` | non | Mode verbose (niveau DEBUG) |
-
-Le script appelle l'API IoT Core (`CreateKeysAndCertificate`), crée la policy `EcoSenseSimulatorPolicy-{region}` si absente, et l'attache au certificat.
+| Argument | Description |
+|---|---|
+| `region` | `us-east-1` ou `us-west-2` |
+| `--force` | Recrée le certificat même si un existant est présent |
+| `-v` | Mode verbose (DEBUG) |
 
 **Fichiers produits** dans `simulator/certs/{region}/` :
 
 | Fichier | Permissions | Contenu |
 |---|---|---|
 | `client.crt` | 644 | Certificat client X.509 |
-| `private.key` | 400 | Clé privée (lecture seule) |
+| `private.key` | 400 | Clé privée |
 | `AmazonRootCA1.pem` | 644 | CA racine Amazon Trust Services |
-| `metadata.json` | 644 | certificateId, ARN, region, policy_name, created_at |
-
-**Exemples :**
+| `metadata.json` | 644 | `certificate_id`, ARN, région, policy, date |
 
 ```bash
-# Provisionner les deux régions
+# Provisionnement initial
 python simulator/provision_certs.py us-east-1
 python simulator/provision_certs.py us-west-2
 
-# Recréer (en cas de rotation ou perte de la clé privée)
+# Forcer la recréation (rotation ou perte de la clé)
 python simulator/provision_certs.py us-east-1 --force
-python simulator/provision_certs.py us-west-2 --force -v
+python simulator/provision_certs.py us-west-2 --force
 ```
 
-Si un certificat existe déjà et que `--force` n'est pas fourni, le script affiche un avertissement et sort sans modifier les fichiers existants.
+### Gérer un certificat via AWS CLI
+
+```bash
+# Lire le cert ID depuis le fichier local
+CERT_ID=$(python3 -c "import json; print(json.load(open('simulator/certs/us-east-1/metadata.json'))['certificate_id'])")
+
+# Vérifier le statut
+aws iot describe-certificate --certificate-id $CERT_ID --region us-east-1 \
+  --query 'certificateDescription.status' --output text
+
+# Désactiver (pour tester le failover)
+aws iot update-certificate --certificate-id $CERT_ID --new-status INACTIVE --region us-east-1
+
+# Réactiver
+aws iot update-certificate --certificate-id $CERT_ID --new-status ACTIVE --region us-east-1
+```
 
 ---
 
@@ -155,122 +142,105 @@ Si un certificat existe déjà et que `--force` n'est pas fourni, le script affi
 ### simulator_mqtt.py
 
 ```
-Usage : python simulator/simulator_mqtt.py [OPTIONS]
+python simulator/simulator_mqtt.py [OPTIONS]
 ```
 
-**Arguments :**
-
-| Argument | Défaut | Description |
+| Option | Défaut `.env` | Description |
 |---|---|---|
-| `--check` | — | Teste la connexion TLS et sort (exit 0 = OK, 1 = erreur) |
-| `--dry-run` | — | Génère des payloads sans publier sur MQTT |
-| `--region {us-east-1,us-west-2}` | valeur `.env` | Force une région spécifique |
-| `--burst-size INT` | `BURST_SIZE` (.env) ou 50 | Nombre de messages par salve |
-| `--burst-interval FLOAT` | `BURST_INTERVAL` (.env) ou 1.0 | Délai entre salves en secondes |
-| `--sensor-count INT` | `SENSOR_COUNT` (.env) ou 500 | Nombre de capteurs simulés |
-| `--critical-rate FLOAT` | `CRITICAL_RATE` (.env) ou 0.1 | Probabilité qu'un message soit CRITICAL (0.0–1.0) |
-| `-v` | — | Mode verbose (niveau DEBUG) |
-| `--mqtt-debug` | — | Active les logs internes de paho-mqtt |
-
-`--check` et `--dry-run` sont mutuellement exclusifs. Les arguments CLI ont priorité sur les variables `.env`.
-
-**Modes :**
-
-`--check` — vérifie que les certificats sont présents, établit une connexion TLS, affiche le résultat et sort. Utile pour valider la configuration avant de lancer le simulateur.
-
-`--dry-run` — boucle infinie qui génère et affiche les payloads JSON sans connexion MQTT. Permet de vérifier la génération des données localement.
-
-Mode publication (défaut) — se connecte à la région active, publie des salves en continu. Si `MULTI_REGION=true` dans `.env` et qu'aucune `--region` n'est forcée, bascule automatiquement vers la région secondaire en cas de déconnexion.
-
-**Exemples :**
+| `--check` | — | Test de connexion TLS uniquement (exit 0/1) |
+| `--dry-run` | — | Génère les payloads sans publier |
+| `--region {us-east-1,us-west-2}` | `CDK_DEFAULT_REGION` | Forcer une région |
+| `--burst-size INT` | `BURST_SIZE` | Messages par salve |
+| `--burst-interval FLOAT` | `BURST_INTERVAL` | Secondes entre salves |
+| `--sensor-count INT` | `SENSOR_COUNT` | Nombre de capteurs simulés |
+| `--critical-rate FLOAT` | `CRITICAL_RATE` | Fraction de messages CRITICAL (0.0–1.0) |
+| `-v` | — | Mode verbose (DEBUG) |
+| `--mqtt-debug` | — | Logs internes paho-mqtt |
 
 ```bash
-# Vérification connexion
+# Tester la connexion sur les deux régions
 python simulator/simulator_mqtt.py --check
-
-# Vérification sur la région secondaire
 python simulator/simulator_mqtt.py --check --region us-west-2
 
 # Prévisualiser les payloads sans publier
 python simulator/simulator_mqtt.py --dry-run -v
 
-# Publication standard
+# Simulation standard
 python simulator/simulator_mqtt.py
+
+# Crash-test : taux CRITICAL élevé pour la démo jury
+python simulator/simulator_mqtt.py --burst-size 10 --critical-rate 0.5 --burst-interval 0.5
 
 # Forcer la région secondaire
 python simulator/simulator_mqtt.py --region us-west-2
-
-# Simulation de pic de pollution (taux CRITICAL élevé, salves rapides)
-python simulator/simulator_mqtt.py --burst-size 10 --critical-rate 0.5 --burst-interval 0.5
 ```
 
 ---
 
-## Schéma d'architecture
-
-Le script `docs/scripts/archi.py` génère le schéma d'architecture au format PNG via la bibliothèque [`diagrams`](https://diagrams.mingrammer.com/).
-
-### Dépendances
-
-**Paquet système** (moteur de rendu Graphviz) :
+## Route 53 — Failover manuel
 
 ```bash
-sudo apt install graphviz
+# Variables de session
+HC_ID_PRIMARY=$(grep ROUTE53_HC_ID_PRIMARY .env | cut -d= -f2)
+HC_ID_SECONDARY=$(grep ROUTE53_HC_ID_SECONDARY .env | cut -d= -f2)
+
+# État actuel des health checks
+aws route53 get-health-check-status --health-check-id $HC_ID_PRIMARY \
+  --query 'HealthCheckObservations[0].StatusReport.Status' --output text
+
+# Déclencher un failover (marque us-east-1 UNHEALTHY)
+aws route53 update-health-check --health-check-id $HC_ID_PRIMARY --inverted
+
+# Rétablir
+aws route53 update-health-check --health-check-id $HC_ID_PRIMARY --no-inverted
 ```
-
-**Paquet Python** :
-
-```bash
-pip install diagrams
-```
-
-`diagrams` est indépendant des dépendances CDK et simulateur — il n'est pas inclus dans `iac/requirements.txt` ni `simulator/requirements.txt`.
-
-### Générer le PNG
-
-```bash
-# Depuis la racine du dépôt
-python docs/scripts/archi.py
-# Produit ecosense_archi.png dans le répertoire courant
-
-mv ecosense_archi.png docs/img/ecosense_archi.png
-```
-
-Le paramètre `filename="ecosense_archi"` dans le script est relatif au répertoire de travail au moment de l'exécution. L'image de référence est versionnée dans `docs/img/ecosense_archi.png`.
 
 ---
 
 ## Tests manuels AWS CLI
 
-Ces commandes publient directement via l'API IoT Data (pas de mTLS, utilise les credentials AWS). Utile pour tester le pipeline sans passer par le simulateur.
-
-### Publier un message CRITICAL
+### Publier un message de test via l'API IoT Data
 
 ```bash
-aws iot-data publish \
-  --topic "metropole/centre/S-TEST/telemetry" \
-  --payload '{"sensor_id":"S-TEST","metric":"CO2","value":1500,"unit":"ppm","status":"CRITICAL","region":"us-east-1","quartier":"centre","timestamp":1748952000}' \
-  --cli-binary-format raw-in-base64-out \
-  --region us-east-1
-```
-
-Ce message déclenche `ecosense_alert_rule` (WHERE status = 'CRITICAL') et `ecosense_archive_rule` (toujours).
-
-### Publier un message NORMAL
-
-```bash
+# Message NORMAL
 aws iot-data publish \
   --topic "metropole/nord/S-TEST/telemetry" \
-  --payload '{"sensor_id":"S-TEST","metric":"CO2","value":500,"unit":"ppm","status":"NORMAL","region":"us-east-1","quartier":"nord","timestamp":1748952000}' \
-  --cli-binary-format raw-in-base64-out \
-  --region us-east-1
+  --payload '{"sensor_id":"S-TEST","metric":"CO2","value":500,"unit":"ppm","status":"NORMAL","region":"us-east-1","quartier":"nord","timestamp":0}' \
+  --cli-binary-format raw-in-base64-out --region us-east-1
+
+# Message CRITICAL (déclenche SNS + archivage)
+aws iot-data publish \
+  --topic "metropole/centre/S-TEST/telemetry" \
+  --payload '{"sensor_id":"S-TEST","metric":"CO2","value":1500,"unit":"ppm","status":"CRITICAL","region":"us-east-1","quartier":"centre","timestamp":0}' \
+  --cli-binary-format raw-in-base64-out --region us-east-1
 ```
 
-Ce message déclenche uniquement `ecosense_archive_rule`.
+### Vérifier le pipeline
+
+```bash
+# Métriques Topic Rules (TopicMatch = messages reçus, Success = actions exécutées)
+for rule in ecosense_alert_rule ecosense_archive_rule; do
+  echo "=== $rule ==="
+  for metric in TopicMatch Success Failure; do
+    printf "  %-12s: " "$metric"
+    aws cloudwatch get-metric-statistics \
+      --namespace AWS/IoT --metric-name "$metric" \
+      --dimensions Name=RuleName,Value="$rule" \
+      --start-time "$(date -u -d '10 minutes ago' '+%Y-%m-%dT%H:%M:%S')" \
+      --end-time "$(date -u '+%Y-%m-%dT%H:%M:%S')" \
+      --period 600 --statistics Sum \
+      --query 'Datapoints[0].Sum' --output text --region us-east-1
+  done
+done
+
+# Derniers fichiers archivés en S3
+aws s3 ls s3://ecosense-archives-{ACCOUNT_ID}-us-east-1/raw/ --recursive | sort | tail -10
+
+# Toutes les valeurs à copier dans .env après deploy (IoT endpoints + Route53 HC IDs)
+make post-deploy
+```
 
 ### Test SNS direct
-
-Publie directement sur le topic SNS, sans passer par IoT Core. Permet de vérifier que l'abonnement email est actif.
 
 ```bash
 aws sns publish \
@@ -282,69 +252,18 @@ aws sns publish \
 
 ---
 
-## Observation
+## Schéma d'architecture
 
-### Endpoint IoT Core
-
-```bash
-aws iot describe-endpoint --endpoint-type iot:Data-ATS --region us-east-1
-aws iot describe-endpoint --endpoint-type iot:Data-ATS --region us-west-2
-```
-
-### Contenu S3
+Le script `docs/scripts/archi.py` génère `docs/img/ecosense_archi.png` via la bibliothèque [`diagrams`](https://diagrams.mingrammer.com/).
 
 ```bash
-# Lister les fichiers archivés
-aws s3 ls s3://ecosense-archives-{ACCOUNT_ID}-us-east-1/ --recursive
+# Dépendance système
+sudo apt install graphviz
 
-# Lire un fichier spécifique
-aws s3 cp s3://ecosense-archives-{ACCOUNT_ID}-us-east-1/2026-06-03-14/firehose-... -
-```
+# Dépendance Python (hors requirements.txt)
+pip install diagrams
 
-### Métriques CloudWatch — Topic Rules
-
-Vérifie que les messages sont bien routés par les deux règles IoT (`TopicMatch` = messages reçus, `Success` = actions exécutées, `Failure` = erreurs).
-
-```bash
-for rule in ecosense_alert_rule ecosense_archive_rule; do
-  echo "=== $rule ==="
-  for metric in TopicMatch Success Failure; do
-    printf "  %-12s: " "$metric"
-    aws cloudwatch get-metric-statistics \
-      --namespace AWS/IoT \
-      --metric-name "$metric" \
-      --dimensions Name=RuleName,Value="$rule" \
-      --start-time "$(date -u -d '10 minutes ago' '+%Y-%m-%dT%H:%M:%S')" \
-      --end-time "$(date -u '+%Y-%m-%dT%H:%M:%S')" \
-      --period 600 --statistics Sum \
-      --query 'Datapoints[0].Sum' --output text \
-      --region us-east-1
-  done
-done
-```
-
-### Métriques CloudWatch — SNS
-
-```bash
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/SNS \
-  --metric-name NumberOfMessagesPublished \
-  --dimensions Name=TopicName,Value=ecosense-alert-us-east-1 \
-  --start-time "$(date -u -d '15 minutes ago' '+%Y-%m-%dT%H:%M:%S')" \
-  --end-time "$(date -u '+%Y-%m-%dT%H:%M:%S')" \
-  --period 60 --statistics Sum \
-  --region us-east-1
-```
-
-### Métriques CloudWatch — Firehose
-
-```bash
-aws cloudwatch get-metric-statistics \
-  --namespace AWS/Firehose \
-  --metric-name IncomingRecords \
-  --dimensions Name=DeliveryStreamName,Value=ecosense-delivery-us-east-1 \
-  --start-time "$(date -u -d '10 minutes ago' '+%Y-%m-%dT%H:%M:%S')" \
-  --end-time "$(date -u '+%Y-%m-%dT%H:%M:%S')" \
-  --period 60 --statistics Sum \
-  --region us-east-1
+# Générer
+python docs/scripts/archi.py
+mv ecosense_archi.png docs/img/ecosense_archi.png
 ```

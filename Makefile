@@ -170,13 +170,16 @@ diff: ## Voir les changements depuis le dernier deploy (toutes régions actives)
 	cdk diff $(STACKS_ALL)
 
 .PHONY: deploy
-deploy: _check-env ## Déployer les stacks selon MULTI_REGION (Primary seul ou Primary+Secondary)
+deploy: _check-env ## Déployer les stacks selon MULTI_REGION (Primary + Secondary + Route53 si MULTI_REGION=true)
 	cdk deploy $(STACKS_ALL) --require-approval never --import-existing-resources || \
 	  { echo ""; echo "Deploy échoué. Vérifier :"; \
 	    echo "  1. make bootstrap-bucket  (bucket CDK absent après un destroy)"; \
 	    echo "  2. .env correctement rempli (IOT_ENDPOINT_*, ACCOUNT_ID...)"; \
 	    echo "  3. pip install -r iac/requirements.txt"; \
 	    exit 1; }
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		$(MAKE) deploy-route53; \
+	fi
 
 .PHONY: deploy-primary
 deploy-primary: _check-env ## Déployer uniquement les stacks Primary
@@ -268,6 +271,9 @@ empty-buckets: ## Vider les buckets S3 archive + CDK assets (toutes régions act
 .PHONY: destroy
 destroy: ## Détruire tous les stacks actifs + supprimer les buckets
 	@$(MAKE) empty-buckets FORCE=1
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		cdk destroy EcoSense-Route53 --force 2>/dev/null || true; \
+	fi
 	cdk destroy $(STACKS_ALL) --force
 	@echo "Suppression des buckets résiduels..."
 	@for bucket in \
@@ -347,14 +353,36 @@ sns-test: ## Publier un test direct sur SNS (skip IoT, vérifie email)
 # Observation
 # ==============================================================================
 
-.PHONY: iot-endpoint
-iot-endpoint: ## Afficher l'endpoint IoT Core pour la/les région(s) active(s)
-	@echo "=== $(REGION) ==="
-	@aws iot describe-endpoint --endpoint-type iot:Data-ATS --region $(REGION)
+.PHONY: post-deploy
+post-deploy: ## Afficher toutes les valeurs à copier dans .env après make deploy
+	@echo ""
+	@echo "Copier ces valeurs dans .env :"
+	@echo "────────────────────────────────────────────────────────"
+	@PRIMARY_EP=$$(aws iot describe-endpoint --endpoint-type iot:Data-ATS \
+		--region $(REGION) --query 'endpointAddress' --output text 2>/dev/null); \
+	echo "IOT_ENDPOINT_PRIMARY=$$PRIMARY_EP"
 	@if [ "$(MULTI_REGION)" = "true" ]; then \
-		echo "=== $(SECONDARY_REGION) ==="; \
-		aws iot describe-endpoint --endpoint-type iot:Data-ATS --region $(SECONDARY_REGION); \
+		SECONDARY_EP=$$(aws iot describe-endpoint --endpoint-type iot:Data-ATS \
+			--region $(SECONDARY_REGION) --query 'endpointAddress' --output text 2>/dev/null); \
+		echo "IOT_ENDPOINT_SECONDARY=$$SECONDARY_EP"; \
 	fi
+	@if [ "$(MULTI_REGION)" = "true" ]; then \
+		PRIMARY_HC=$$(aws cloudformation describe-stacks --stack-name EcoSense-Route53 \
+			--region $(REGION) \
+			--query "Stacks[0].Outputs[?OutputKey=='PrimaryHealthCheckId'].OutputValue" \
+			--output text 2>/dev/null); \
+		SECONDARY_HC=$$(aws cloudformation describe-stacks --stack-name EcoSense-Route53 \
+			--region $(REGION) \
+			--query "Stacks[0].Outputs[?OutputKey=='SecondaryHealthCheckId'].OutputValue" \
+			--output text 2>/dev/null); \
+		echo "ROUTE53_HC_ID_PRIMARY=$$PRIMARY_HC"; \
+		echo "ROUTE53_HC_ID_SECONDARY=$$SECONDARY_HC"; \
+	fi
+	@echo "────────────────────────────────────────────────────────"
+	@echo ""
+
+.PHONY: iot-endpoint
+iot-endpoint: post-deploy ## Alias de post-deploy (compatibilité)
 
 .PHONY: s3-ls
 s3-ls: ## Lister les fichiers archivés dans S3
@@ -406,7 +434,29 @@ metrics-firehose: ## Voir les records reçus par Firehose (10 dernières min)
 # ==============================================================================
 
 .PHONY: clean
-clean: ## Nettoyer les artefacts locaux (cdk.out, __pycache__)
+clean: ## Repo fresh pour démo : supprime venv, certs, cdk.out, caches — garde .env
+	@echo "Nettoyage du repo (le .env est conservé)..."
+	rm -rf .venv
 	rm -rf cdk.out
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	@echo "Artefacts locaux nettoyés"
+	rm -rf simulator/certs
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true
+	find . -type d -name .mypy_cache -exec rm -rf {} + 2>/dev/null; true
+	find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null; true
+	find . -name "*.pyc" -delete 2>/dev/null; true
+	@echo ""
+	@echo "Repo nettoyé. Deux scénarios :"
+	@echo ""
+	@echo "  ── Démo (infra AWS déjà déployée) ───────────────────────"
+	@echo "  make install      # recréer le venv + installer les dépendances"
+	@echo "  make certs        # reprovisionner les certificats X.509"
+	@echo "  make check        # tester la connexion MQTT"
+	@echo "  make run          # lancer le simulateur"
+	@echo ""
+	@echo "  ── From scratch (première installation) ─────────────────"
+	@echo "  make bootstrap        # venv + dépendances + bucket CDK"
+	@echo "  make deploy           # déployer Primary + Secondary"
+	@echo "  make deploy-route53   # déployer les health checks Route 53"
+	@echo "  make iot-endpoint     # vérifier/copier les endpoints dans .env"
+	@echo "  make certs            # provisionner les certificats X.509"
+	@echo "  make check            # tester la connexion MQTT"
+	@echo "  make run              # lancer le simulateur"

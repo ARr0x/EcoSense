@@ -184,7 +184,7 @@ FROM 'sensors/+/metrics'
   - Investigation manuelle requise
 
 #### Coûts
-- Firehose : $0.29 par Go ingéré
+- Firehose : $0.029 par Go ingéré
 - S3 writes : inclus dans Firehose
 
 ---

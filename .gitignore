@@ -1,5 +1,5 @@
 .env
 .venv
 certs/
-cdk.out
-__pycache__
+cdk.out/
+__pycache__/
