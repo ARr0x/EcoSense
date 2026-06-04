@@ -54,7 +54,7 @@ Utilisation d'**Amazon Kinesis Data Firehose** à la place du couple SQS + Lambd
 
 ### Conséquences
 
-- Le bucket S3 utilise le partitionnement `raw/year=YYYY/month=MM/day=DD/hour=HH/`.
+- Le bucket S3 utilise le partitionnement `YYYY-MM-DD-HH/`.
 - Une table Glue avec **partition projection** (plage 2026–2030) est créée dans `StorageStack` pour éviter d'avoir besoin d'un crawler Glue.
 - Les requêtes Athena fonctionnent immédiatement sans `MSCK REPAIR TABLE`.
 
