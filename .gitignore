@@ -1,0 +1,7 @@
+.env
+.venv
+certs/
+cdk.out/
+__pycache__/
+CLAUDE.md
+.claude/
