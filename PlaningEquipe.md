@@ -66,7 +66,9 @@
 
 ### Frédéric Chapot
 #### Travaux réalisés
-- À compléter.
+- Modification du drowIO pour l'architecture Ecosens, creation de la page : [Architecture cible](docs/architecture-cible.md).
+- Implementation de PNG dans les docs.
+- Reflexion Finops sur l'architecture multi-regions.
 
 ### Arthur Lacombe
 #### Travaux réalisés
