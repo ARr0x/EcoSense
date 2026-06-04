@@ -158,6 +158,8 @@ def save_certificate_files(cert_dir: Path, cert_data: dict) -> None:
     log.info(f"Certificat : {cert_file} (mode 644)")
 
     key_file = cert_dir / "private.key"
+    if key_file.exists():
+        key_file.chmod(0o600)
     key_file.write_text(cert_data["private_key"])
     key_file.chmod(0o400)
     log.info(f"Clé privée : {key_file} (mode 400)")

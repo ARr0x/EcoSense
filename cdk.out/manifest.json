@@ -38,7 +38,7 @@
     },
     "EcoSense-Secondary": {
       "type": "aws:cloudformation:stack",
-      "environment": "aws://825804607046/us-east-2",
+      "environment": "aws://825804607046/us-west-2",
       "properties": {
         "templateFile": "EcoSense-Secondary.template.json",
         "terminationProtection": false,
@@ -48,7 +48,7 @@
           "Project": "EcoSense"
         },
         "validateOnSynth": false,
-        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-825804607046-us-east-2/86ff948820ed65435874c5dba4deb2d97f44e74e259466bf4045e3293ff516b2.json",
+        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-825804607046-us-west-2/1b4bf9e60616a1560df3296a936e7041e2175ee3959e3ab3d6ef6cc80ce73e81.json",
         "additionalDependencies": [
           "EcoSense-Secondary.assets"
         ]
@@ -76,7 +76,7 @@
           "Project": "EcoSense"
         },
         "validateOnSynth": false,
-        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-825804607046-us-east-1/21e80654dd0e3dada7d43b5a0c83056c51d9c35f4ab839bdf033c227201971f7.json",
+        "stackTemplateAssetObjectUrl": "s3://ecosense-cdk-825804607046-us-east-1/97346a25181f76a3e398d1e24fffb5ddeb01ee71ab5367e037711dc885ca2645.json",
         "additionalDependencies": [
           "EcoSense-Route53.assets"
         ]

@@ -9,6 +9,10 @@ Le `Makefile` est l'interface principale. Toutes les commandes s'exécutent depu
 
 ![ArchiEcosens](docs/img/archiecosens.png)
 
+Schémas Draw.io éditables dans `docs/img/Drowio/` :
+- [`EcosensV4Archi.drawio`](docs/img/Drowio/EcosensV4Archi.drawio) — architecture générale multi-région
+- [`ecosense_alerting.drawio`](docs/img/Drowio/ecosense_alerting.drawio) — pipeline d'alertes CRITICAL
+
 ## Prérequis
 
 - Python 3.11+
@@ -47,7 +51,16 @@ Consulter `make help` pour la liste complète des cibles disponibles.
 
 ## Documentation
 
+### Projet
+- [Sujet](Sujet.md) — scénario métier, architecture implémentée, déviation vs sujet prescrit, crash-tests
+- [Journal de bord](PlaningEquipe.md) — répartition des tâches par membre et par jour
+
+### Architecture
 - [Infrastructure](docs/infrastructure.md) — composants AWS déployés, flux de données, ressources par région
-- [Architecture cible](docs/architecture-cible.md) — architecture production (Route 53, CRR, KMS, sécurité complète)
-- [Limitations et améliorations](docs/limitations-et-ameliorations.md) — contraintes AWS Academy, delta actuel → production, améliorations identifiées
-- [Scripts et commandes](docs/usage.md) — CDK, provision_certs.py, simulator_mqtt.py, AWS CLI
+- [Architecture cible](docs/architecture-cible.md) — architecture production cible (Route 53, CRR, KMS, sécurité complète)
+- [ADR — Architecture Decision Records](docs/adr.md) — décisions techniques structurantes (IoT Core vs SNS, Firehose vs Lambda, failover client-side, régions)
+- [Limitations et améliorations](docs/limitations-et-ameliorations.md) — contraintes AWS Academy, delta actuel → production
+
+### Exploitation
+- [Runbooks](docs/runbook.md) — procédures de résolution des pannes critiques (basculement, certificat, Firehose, SNS, lab restart)
+- [Scripts et commandes](docs/usage.md) — référence CDK, provision_certs.py, simulator_mqtt.py, AWS CLI
