@@ -168,7 +168,7 @@ aws iot-data publish \
   --cli-binary-format raw-in-base64-out --region us-east-1
 
 sleep 90
-aws s3 ls s3://ecosense-archives-$(aws sts get-caller-identity --query Account --output text)-us-east-1/raw/ \
+aws s3 ls s3://ecosense-archives-$(aws sts get-caller-identity --query Account --output text)-us-east-1/ \
   --recursive | sort | tail -5
 ```
 
@@ -517,7 +517,7 @@ make run
 # Confirmer que les données arrivent dans le bucket secondaire
 sleep 90  # attendre le buffer Firehose (60 s)
 aws s3 ls s3://ecosense-archives-$(aws sts get-caller-identity \
-  --query Account --output text)-us-west-2/raw/ \
+  --query Account --output text)-us-west-2/ \
   --recursive | sort | tail -5
 ```
 
