@@ -1,6 +1,9 @@
 # EcoSense
 ![logo ecosens](docs/img/Ecosenslogo.png)
 
+> **Contexte académique** : Projet réalisé dans le cadre du **Mastère Expert en Cloud, Sécurité & Infrastructure** à [Ynov Connect](https://www.ynov.com/formations/informatique/mastere-expert-en-cloud-securite-infrastructure).
+> Hackathon AWS Infrastructure : **Frédéric Chapot**, **Arthur Lacombe**, **Matéo Nicoud**.
+
 Pipeline de télémétrie IoT multi-région sur AWS. Les capteurs publient des mesures environnementales via MQTT/mTLS vers IoT Core ; les Topic Rules routent le flux en deux chemins : alertes CRITICAL vers une chaîne d'agrégation par quartier avec backoff exponentiel, et 100 % du flux vers Kinesis Firehose pour archivage dans S3 et interrogation via Athena. Deux régions indépendantes (`us-east-1` / `us-west-2`) avec failover côté client.
 
 ## Architecture
